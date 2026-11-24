@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulatore impianti solari termici</title>
+<style>
+:root{--bg:#f4f1ea;--card:#fffdf8;--ink:#1d2433;--muted:#5f6878;--line:#e3ddcf;--sun:#f5a524;--hot:#e0482f;--cold:#2f7fd8;--ok:#1f9d63;--bad:#d23c3c;--accent:#16325c;--accent2:#2a5aa0;--soft:#eef3fb;--r:14px}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:20;background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.hbar{display:flex;align-items:center;gap:10px;padding:9px 14px;max-width:1180px;margin:0 auto}
+.hbar h1{font-size:15.5px;margin:0;line-height:1.2;font-weight:650}
+.hbar small{display:block;opacity:.75;font-weight:400;font-size:12px}
+.hbar .home{white-space:nowrap;flex:none;margin-left:auto;background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:10px;padding:6px 11px;cursor:pointer}
+.pills{display:flex;gap:6px;overflow-x:auto;padding:0 14px 9px;max-width:1180px;margin:0 auto;scrollbar-width:none}
+.pills button{flex:none;border:0;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;background:rgba(255,255,255,.12);color:#dfe7f5;white-space:nowrap}
+.pills button.cur{background:var(--sun);color:#2b1c00;font-weight:700}
+.pills button.done{background:rgba(31,157,99,.35);color:#fff}
+main{max-width:1180px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px}
+.head{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px}
+.head .n{flex:none;background:var(--accent);color:#fff;border-radius:11px;padding:5px 10px;font-weight:700;font-size:13px}
+.head h2{margin:0;font-size:20px;line-height:1.25}.head p{margin:3px 0 0;color:var(--muted)}
+h3{font-size:15px;margin:18px 0 8px;color:var(--accent)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.ctrl{margin:9px 0}.ctrl label{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:14px;margin-bottom:3px}
+.ctrl label b{color:var(--accent2)}
+input[type=range]{width:100%;accent-color:var(--accent2)}
+input[type=number],input[type=text],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;cursor:pointer;text-align:left}
+.opt:hover{border-color:var(--accent2)}.opt.sel{border-color:var(--accent2);background:var(--soft);box-shadow:0 0 0 3px rgba(42,90,160,.12)}
+.opt small{display:block;color:var(--muted);font-size:12px}
+.opt.right{border-color:var(--ok);background:#eaf7f0}.opt.wrong{border-color:var(--bad);background:#fdeeee}
+.calc{background:#fbf8f1;border:1px dashed #d8cfba;border-radius:12px;padding:11px 14px;margin:10px 0}
+.calc .f{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;margin:2px 0;overflow-wrap:anywhere}
+.calc .res{font-size:17px;font-weight:700;color:var(--accent);margin-top:5px}
+.chip{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:650;margin:2px 4px 2px 0}
+.chip.ok{background:#e3f5ec;color:var(--ok)}.chip.bad{background:#fbe3e3;color:var(--bad)}.chip.warn{background:#fdf1dc;color:#a96a00}
+.note{border-left:4px solid var(--sun);background:#fff8e8;padding:9px 12px;border-radius:0 10px 10px 0;margin:10px 0;font-size:14px}
+.note.blue{border-color:var(--accent2);background:var(--soft)}.note.red{border-color:var(--bad);background:#fdeeee}.note.green{border-color:var(--ok);background:#eaf7f0}
+.fig{background:linear-gradient(#eaf2fb,#f7f3ea);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:8px 0}
+.fig svg{display:block;width:100%;height:auto}
+.fig .cap{font-size:12px;color:var(--muted);padding:4px 10px 6px;background:#fff}
+table.t{border-collapse:collapse;width:100%;font-size:12.5px}
+table.t th,table.t td{border:1px solid var(--line);padding:4px 6px;text-align:center}
+table.t th{background:#f1ece0}table.t td.hl{background:#ffe7a8;font-weight:700}table.t td.pk{background:var(--accent2);color:#fff;font-weight:700}
+.scroll{overflow:auto;max-width:100%}
+.nav{display:flex;justify-content:space-between;gap:10px;margin:4px 0 30px}
+.btn{border:0;border-radius:12px;padding:11px 18px;font-weight:650;cursor:pointer;background:var(--accent2);color:#fff}
+.btn.ghost{background:#fff;color:var(--accent);border:1.5px solid var(--line)}.btn.sun{background:var(--sun);color:#3a2600}
+.btn:disabled{opacity:.4;cursor:default}
+.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.hc{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:0;cursor:pointer;text-align:left;overflow:hidden}
+.hc:hover{border-color:var(--accent2)}.hc .fig{margin:0;border:0;border-radius:0}.hc div.tx{padding:12px 16px}
+.hc h3{margin:0 0 4px}.hc p{margin:0;color:var(--muted);font-size:14px}
+.list .row{display:flex;gap:8px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 8px;margin-bottom:6px}
+.list .row.off{opacity:.5}.list .row input[type=number]{width:70px;padding:4px 6px}
+.list .row .nm{flex:1;font-size:14px}.list .row button{border:1px solid var(--line);background:#fff;border-radius:8px;width:30px;height:30px;cursor:pointer}
+.faults{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px}.faults .opt{padding:6px 10px;font-size:13.5px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:4px 12px;font-size:14px}.kv b{color:var(--accent)}
+.flow{stroke-dasharray:7 9;animation:flow 1s linear infinite}.flow.rev{animation-direction:reverse}.flow.slow{animation-duration:2.4s}
+@keyframes flow{to{stroke-dashoffset:-32}}
+.spin{animation:spin 1.1s linear infinite;transform-box:fill-box;transform-origin:center}@keyframes spin{to{transform:rotate(360deg)}}
+.pulse{animation:pulse 1.4s ease-in-out infinite}@keyframes pulse{50%{opacity:.25}}
+.ray{stroke-dasharray:50;animation:ray 1.8s ease-in infinite}@keyframes ray{0%{stroke-dashoffset:50;opacity:0}30%{opacity:1}100%{stroke-dashoffset:0;opacity:.2}}
+.grow{transform-box:fill-box;transform-origin:left;animation:grow .7s ease-out both}@keyframes grow{from{transform:scaleX(0)}}
+.clk{cursor:pointer}.clk:hover{filter:brightness(1.15)}
+.busy{position:fixed;inset:0;background:rgba(20,30,50,.55);display:grid;place-items:center;z-index:50;color:#fff;font-weight:700;font-size:18px}
+@media (max-width:860px){.g2,.home-cards{grid-template-columns:1fr}main{padding:10px}.card{padding:14px}.kv{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="hbar"><svg width="32" height="32" viewBox="0 0 40 40"><circle cx="20" cy="13" r="7" fill="#f5a524"/><path d="M6 36l6-14h16l6 14z" fill="#2a5aa0" stroke="#fff" stroke-width="1.2"/><path d="M13 22l-2.5 14M20 22v14M27 22l2.5 14M9 29h22" stroke="#fff"/></svg>
+<h1 id="ttl">Simulatore impianti solari termici<small id="sub">Scegli la traccia</small></h1><button class="home" id="homeBtn">⌂ Tracce</button></div>
+<div class="pills" id="pills"></div></header>
+<main id="main"></main>
+<script>
+// ===================== UTILITÀ =====================
+const $=s=>document.querySelector(s);
+const fmt=(x,d=2)=>x==null||isNaN(x)?'-':Number(x).toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
+const f0=x=>fmt(x,0),f1=x=>fmt(x,1),f2=x=>fmt(x,2),f3=x=>fmt(x,3);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+const xesc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const strip=s=>String(s).replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ');
+function tcol(T){const t=clamp((T-10)/80,0,1),a=[47,127,216],b=[240,180,60],c=[224,60,40];
+  const m=t<.5?a.map((v,i)=>lerp(v,b[i],t*2)):b.map((v,i)=>lerp(v,c[i],(t-.5)*2));return `rgb(${m.map(Math.round).join(',')})`}
+
+// ===================== ZIP (store) =====================
+const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRCT[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function makeZip(files,mime){
+  const enc=new TextEncoder(),parts=[],cd=[];let off=0;
+  for(const f of files){
+    const name=enc.encode(f.name),data=typeof f.data==='string'?enc.encode(f.data):f.data,crc=crc32(data);
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);lh.setUint16(10,0,true);lh.setUint16(12,0x21,true);
+    lh.setUint32(14,crc,true);lh.setUint32(18,data.length,true);lh.setUint32(22,data.length,true);lh.setUint16(26,name.length,true);lh.setUint16(28,0,true);
+    parts.push(new Uint8Array(lh.buffer),name,data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);ch.setUint16(12,0,true);ch.setUint16(14,0x21,true);
+    ch.setUint32(16,crc,true);ch.setUint32(20,data.length,true);ch.setUint32(24,data.length,true);ch.setUint16(28,name.length,true);ch.setUint32(38,0,true);ch.setUint32(42,off,true);
+    cd.push(new Uint8Array(ch.buffer),name);off+=30+name.length+data.length;
+  }
+  const cds=cd.reduce((a,b)=>a+b.length,0),end=new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true);end.setUint16(8,files.length,true);end.setUint16(10,files.length,true);end.setUint32(12,cds,true);end.setUint32(16,off,true);
+  return new Blob([...parts,...cd,new Uint8Array(end.buffer)],{type:mime});
+}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
+
+// ===================== SVG -> PNG =====================
+function svgToPng(fig,scale=2){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>{const c=document.createElement('canvas');c.width=fig.w*scale;c.height=fig.h*scale;const x=c.getContext('2d');
+      x.fillStyle='#ffffff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
+      c.toBlob(b=>b.arrayBuffer().then(ab=>res({bytes:new Uint8Array(ab),w:fig.w,h:fig.h})),'image/png')};
+    img.onerror=e=>rej(e);
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(fig.svg);
+  });
+}
+
+// ===================== DOCX =====================
+class Doc{
+  constructor(title){this.name=title;this.b=[];this.nf=0;this.nt=0}
+  h1(t){this.b.push({k:'h',s:'Heading1',t});return this}
+  h2(t){this.b.push({k:'h',s:'Heading2',t});return this}
+  h3(t){this.b.push({k:'h',s:'Heading3',t});return this}
+  p(t,o={}){this.b.push({k:'p',t,o});return this}
+  bul(items){items.forEach(t=>this.b.push({k:'p',t:'• '+t,o:{style:'Elenco'}}));return this}
+  num(items){items.forEach((t,i)=>this.b.push({k:'p',t:(i+1)+'. '+t,o:{style:'Elenco'}}));return this}
+  calc(lines){lines.forEach(t=>this.b.push({k:'p',t,o:{style:'Calcolo'}}));return this}
+  table(rows,o={}){this.nt++;this.b.push({k:'tbl',rows,o});if(o.cap)this.b.push({k:'p',t:`Tabella ${this.nt}: ${o.cap}`,o:{style:'Didascalia'}});return this}
+  fig(f,cap,o={}){this.nf++;this.b.push({k:'img',f,cap:`Figura ${this.nf}: ${cap}`,o});return this}
+  pb(){this.b.push({k:'pb'});return this}
+  cover(t,sub){this.b.push({k:'p',t,o:{style:'Titolo'}});if(sub)this.b.push({k:'p',t:sub,o:{style:'Sottotitolo'}});return this}
+}
+function runs(t,extra=''){
+  return String(t).split(/(\*\*[^*]+\*\*)/).filter(Boolean).map(s=>{const b=s.startsWith('**');const x=b?s.slice(2,-2):s;
+    return `<w:r><w:rPr>${b?'<w:b/>':''}${extra}</w:rPr><w:t xml:space="preserve">${xesc(x)}</w:t></w:r>`}).join('');
+}
+async function buildDocx(doc,onProg){
+  const media=[];let body='',imgId=0;
+  for(const bl of doc.b){
+    if(bl.k==='h') body+=`<w:p><w:pPr><w:pStyle w:val="${bl.s}"/></w:pPr>${runs(bl.t)}</w:p>`;
+    else if(bl.k==='p'){const o=bl.o||{};body+=`<w:p><w:pPr><w:pStyle w:val="${o.style||'Normal'}"/>${o.center?'<w:jc w:val="center"/>':''}</w:pPr>${runs(bl.t)}</w:p>`}
+    else if(bl.k==='pb') body+='<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+    else if(bl.k==='tbl'){
+      const rows=bl.rows,nc=rows[0].length,tot=9638,w=bl.o.widths||Array(nc).fill(1),ws=w.reduce((a,b)=>a+b,0),cw=w.map(x=>Math.round(x/ws*tot));
+      const B='<w:top w:val="single" w:sz="4" w:color="B8B2A2"/><w:left w:val="single" w:sz="4" w:color="B8B2A2"/><w:bottom w:val="single" w:sz="4" w:color="B8B2A2"/><w:right w:val="single" w:sz="4" w:color="B8B2A2"/><w:insideH w:val="single" w:sz="4" w:color="B8B2A2"/><w:insideV w:val="single" w:sz="4" w:color="B8B2A2"/>';
+      body+=`<w:tbl><w:tblPr><w:tblW w:w="${tot}" w:type="dxa"/><w:tblBorders>${B}</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="50" w:type="dxa"/><w:left w:w="90" w:type="dxa"/><w:bottom w:w="50" w:type="dxa"/><w:right w:w="90" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${cw.map(x=>`<w:gridCol w:w="${x}"/>`).join('')}</w:tblGrid>`;
+      rows.forEach((r,ri)=>{const hd=ri===0&&bl.o.header!==false;const tot2=bl.o.total&&ri===rows.length-1;
+        body+=`<w:tr>${hd?'<w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>':'<w:trPr><w:cantSplit/></w:trPr>'}${r.map((c,ci)=>{const al=(bl.o.align||[])[ci]||(ci===0||String(c).length>28?'left':'center');
+          const shd=hd?'<w:shd w:val="clear" w:color="auto" w:fill="2A5AA0"/>':tot2?'<w:shd w:val="clear" w:color="auto" w:fill="F1ECE0"/>':ri%2===0?'<w:shd w:val="clear" w:color="auto" w:fill="F4F7FC"/>':'';
+          return `<w:tc><w:tcPr><w:tcW w:w="${cw[ci]}" w:type="dxa"/>${shd}<w:vAlign w:val="center"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="Cella"/><w:jc w:val="${al}"/></w:pPr>${runs(c,hd?'<w:b/><w:color w:val="FFFFFF"/>':tot2?'<w:b/>':'')}</w:p></w:tc>`}).join('')}</w:tr>`});
+      body+='</w:tbl><w:p><w:pPr><w:pStyle w:val="Cella"/></w:pPr></w:p>';
+    }
+    else if(bl.k==='img'){
+      imgId++;onProg&&onProg(`Preparo le figure… ${imgId}`);
+      const png=await svgToPng(bl.f);media.push(png.bytes);
+      const maxW=(bl.o.width||16)*360000,cx=Math.round(maxW),cy=Math.round(maxW*png.h/png.w);
+      let ccx=cx,ccy=cy;const maxH=19*360000;if(ccy>maxH){ccx=Math.round(cx*maxH/ccy);ccy=maxH}
+      body+=`<w:p><w:pPr><w:pStyle w:val="Figura"/><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${ccx}" cy="${ccy}"/><wp:docPr id="${imgId}" name="Figura ${imgId}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="${imgId}" name="image${imgId}.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rImg${imgId}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${ccx}" cy="${ccy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+      body+=`<w:p><w:pPr><w:pStyle w:val="Didascalia"/></w:pPr>${runs(bl.cap)}</w:p>`;
+    }
+  }
+  const NS='xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"';
+  const document_=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${NS}><w:body>${body}<w:sectPr><w:footerReference w:type="default" r:id="rFoot"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const footer=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${NS}><w:p><w:pPr><w:pStyle w:val="PiePagina"/><w:tabs><w:tab w:val="right" w:pos="9638"/></w:tabs></w:pPr>${runs(doc.name)}<w:r><w:tab/><w:t xml:space="preserve">Pagina </w:t></w:r><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r></w:p></w:ftr>`;
+  const st=(id,name,ppr,rpr,extra='')=>`<w:style w:type="paragraph" w:styleId="${id}"><w:name w:val="${name}"/><w:basedOn w:val="Normal"/>${extra}<w:qFormat/><w:pPr>${ppr}</w:pPr><w:rPr>${rpr}</w:rPr></w:style>`;
+  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:eastAsia="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="it-IT"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="276" w:lineRule="auto"/><w:jc w:val="both"/></w:pPr></w:pPrDefault></w:docDefaults>
+<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>
+${st('Titolo','Title','<w:jc w:val="center"/><w:spacing w:before="1800" w:after="240"/>','<w:b/><w:color w:val="16325C"/><w:sz w:val="48"/>')}
+${st('Sottotitolo','Subtitle','<w:jc w:val="center"/><w:spacing w:after="480"/>','<w:color w:val="5F6878"/><w:sz w:val="28"/>')}
+${st('Heading1','heading 1','<w:keepNext/><w:spacing w:before="360" w:after="160"/><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="2" w:color="F5A524"/></w:pBdr><w:jc w:val="left"/><w:outlineLvl w:val="0"/>','<w:b/><w:color w:val="16325C"/><w:sz w:val="32"/>')}
+${st('Heading2','heading 2','<w:keepNext/><w:spacing w:before="240" w:after="100"/><w:jc w:val="left"/><w:outlineLvl w:val="1"/>','<w:b/><w:color w:val="2A5AA0"/><w:sz w:val="26"/>')}
+${st('Heading3','heading 3','<w:keepNext/><w:spacing w:before="180" w:after="60"/><w:jc w:val="left"/><w:outlineLvl w:val="2"/>','<w:b/><w:color w:val="1D2433"/><w:sz w:val="23"/>')}
+${st('Elenco','Elenco','<w:ind w:left="397" w:hanging="227"/><w:spacing w:after="60"/>','')}
+${st('Calcolo','Calcolo','<w:ind w:left="397"/><w:spacing w:after="40"/><w:jc w:val="left"/><w:shd w:val="clear" w:color="auto" w:fill="FBF8F1"/>','<w:rFonts w:ascii="Consolas" w:hAnsi="Consolas"/><w:sz w:val="20"/>')}
+${st('Figura','Figura','<w:keepNext/><w:spacing w:before="120" w:after="40"/><w:jc w:val="center"/>','')}
+${st('Didascalia','caption','<w:jc w:val="center"/><w:spacing w:after="200"/>','<w:i/><w:color w:val="5F6878"/><w:sz w:val="18"/>')}
+${st('Cella','Cella','<w:spacing w:after="0" w:line="240" w:lineRule="auto"/>','<w:sz w:val="19"/>')}
+${st('PiePagina','footer','<w:jc w:val="left"/><w:spacing w:after="0"/>','<w:color w:val="8A8F99"/><w:sz w:val="16"/>')}
+</w:styles>`;
+  const rels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rFoot" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>${media.map((m,i)=>`<Relationship Id="rImg${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image${i+1}.png"/>`).join('')}</Relationships>`;
+  const files=[
+    {name:'[Content_Types].xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>`},
+    {name:'_rels/.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>`},
+    {name:'docProps/core.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${xesc(doc.name)}</dc:title><dc:creator>Simulatore solare termico</dc:creator></cp:coreProperties>`},
+    {name:'word/document.xml',data:document_},{name:'word/styles.xml',data:styles},{name:'word/footer1.xml',data:footer},
+    {name:'word/_rels/document.xml.rels',data:rels},
+    ...media.map((m,i)=>({name:`word/media/image${i+1}.png`,data:m}))
+  ];
+  return makeZip(files,'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+}
+
+// ===================== XLSX Gantt (tabella + formule + grafico) =====================
+function buildGanttXlsx(acts,title,firstOnTop){
+  const n=acts.length,r0=4,rl=r0+n-1;let st=0;const rows=acts.map(a=>{const o={...a,s:st,e:st+a.d};st+=a.d;return o});
+  const tot=st;
+  const c=(ref,v,s,f)=>typeof v==='number'||f?`<c r="${ref}" s="${s}">${f?`<f>${f}</f>`:''}<v>${v}</v></c>`:`<c r="${ref}" t="inlineStr" s="${s}"><is><t xml:space="preserve">${xesc(v)}</t></is></c>`;
+  let sd=`<row r="1">${c('A1',title,2)}</row><row r="3">${c('A3',"ATTIVITA'",1)}${c('B3','Inizio',1)}${c('C3','Dur. Min.',1)}${c('D3','Fine int.',1)}</row>`;
+  rows.forEach((a,i)=>{const r=r0+i;sd+=`<row r="${r}">${c('A'+r,a.n,3)}${i===0?c('B'+r,0,4):c('B'+r,a.s,4,'D'+(r-1))}${c('C'+r,a.d,4)}${c('D'+r,a.e,4,`B${r}+C${r}`)}</row>`});
+  const rt=rl+1;sd+=`<row r="${rt}">${c('A'+rt,'Durata totale (min)',5)}${c('B'+rt,'',5)}${c('C'+rt,tot,6,`SUM(C${r0}:C${rl})`)}${c('D'+rt,tot,6,`D${rl}`)}</row>`;
+  const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols><col min="1" max="1" width="38" customWidth="1"/><col min="2" max="4" width="11" customWidth="1"/></cols><sheetData>${sd}</sheetData><pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/><drawing r:id="rId1"/></worksheet>`;
+  const strC=`<c:strCache><c:ptCount val="${n}"/>${rows.map((a,i)=>`<c:pt idx="${i}"><c:v>${xesc(a.n)}</c:v></c:pt>`).join('')}</c:strCache>`;
+  const numC=k=>`<c:numCache><c:formatCode>General</c:formatCode><c:ptCount val="${n}"/>${rows.map((a,i)=>`<c:pt idx="${i}"><c:v>${a[k]}</c:v></c:pt>`).join('')}</c:numCache>`;
+  const cat=`<c:cat><c:strRef><c:f>Foglio1!$A$${r0}:$A$${rl}</c:f>${strC}</c:strRef></c:cat>`;
+  const major=tot<=200?10:tot<=480?20:tot<=1000?60:120;
+  const chart=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><c:roundedCorners val="0"/><c:chart><c:title><c:tx><c:rich><a:bodyPr/><a:p><a:pPr><a:defRPr sz="1200" b="1"/></a:pPr><a:r><a:rPr lang="it-IT" sz="1200" b="1"/><a:t>DIAGRAMMA DI GANTT</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title><c:autoTitleDeleted val="0"/><c:plotArea><c:layout/><c:barChart><c:barDir val="bar"/><c:grouping val="stacked"/><c:varyColors val="0"/>
+<c:ser><c:idx val="0"/><c:order val="0"/><c:tx><c:strRef><c:f>Foglio1!$B$3</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>Inizio</c:v></c:pt></c:strCache></c:strRef></c:tx><c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr><c:invertIfNegative val="0"/>${cat}<c:val><c:numRef><c:f>Foglio1!$B$${r0}:$B$${rl}</c:f>${numC('s')}</c:numRef></c:val></c:ser>
+<c:ser><c:idx val="1"/><c:order val="1"/><c:tx><c:strRef><c:f>Foglio1!$C$3</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>Dur. Min.</c:v></c:pt></c:strCache></c:strRef></c:tx><c:spPr><a:solidFill><a:srgbClr val="B5833F"/></a:solidFill><a:ln><a:solidFill><a:srgbClr val="8A5F28"/></a:solidFill></a:ln></c:spPr><c:invertIfNegative val="0"/><c:dLbls><c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr><c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="900" b="1"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:defRPr></a:pPr><a:endParaRPr lang="it-IT"/></a:p></c:txPr><c:dLblPos val="ctr"/><c:showLegendKey val="0"/><c:showVal val="1"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/><c:showBubbleSize val="0"/></c:dLbls>${cat}<c:val><c:numRef><c:f>Foglio1!$C$${r0}:$C$${rl}</c:f>${numC('d')}</c:numRef></c:val></c:ser>
+<c:gapWidth val="60"/><c:overlap val="100"/><c:axId val="111"/><c:axId val="222"/></c:barChart>
+<c:catAx><c:axId val="111"/><c:scaling><c:orientation val="${firstOnTop?'maxMin':'minMax'}"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:numFmt formatCode="General" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="900"/></a:pPr><a:endParaRPr lang="it-IT"/></a:p></c:txPr><c:crossAx val="222"/><c:crosses val="autoZero"/><c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/><c:noMultiLvlLbl val="0"/></c:catAx>
+<c:valAx><c:axId val="222"/><c:scaling><c:orientation val="minMax"/><c:max val="${tot}"/><c:min val="0"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:majorGridlines><c:spPr><a:ln w="6350"><a:solidFill><a:srgbClr val="D9D9D9"/></a:solidFill></a:ln></c:spPr></c:majorGridlines><c:title><c:tx><c:rich><a:bodyPr/><a:p><a:pPr><a:defRPr sz="900" b="1"/></a:pPr><a:r><a:rPr lang="it-IT" sz="900" b="1"/><a:t>Tempo di intervento (minuti)</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title><c:numFmt formatCode="General" sourceLinked="0"/><c:majorTickMark val="out"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="800"/></a:pPr><a:endParaRPr lang="it-IT"/></a:p></c:txPr><c:crossAx val="111"/><c:crosses val="${firstOnTop?'max':'autoZero'}"/><c:crossBetween val="between"/><c:majorUnit val="${major}"/></c:valAx>
+</c:plotArea><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart></c:chartSpace>`;
+  const drawing=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"><xdr:twoCellAnchor><xdr:from><xdr:col>5</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>1</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>16</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${Math.max(22,n*2+8)}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="2" name="Gantt"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart r:id="rId1"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:twoCellAnchor></xdr:wsDr>`;
+  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="4"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="14"/><color rgb="FF16325C"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF2A5AA0"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDCE6F2"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF1ECE0"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF9FB3D1"/></left><right style="thin"><color rgb="FF9FB3D1"/></right><top style="thin"><color rgb="FF9FB3D1"/></top><bottom style="thin"><color rgb="FF9FB3D1"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="7"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1"/><xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="3" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/><xf numFmtId="0" fontId="3" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normale" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  const R=(id,type,t)=>`<Relationship Id="${id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/${type}" Target="${t}"/>`;
+  const RS=x=>`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${x}</Relationships>`;
+  return makeZip([
+    {name:'[Content_Types].xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/><Override PartName="/xl/charts/chart1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/></Types>`},
+    {name:'_rels/.rels',data:RS(R('rId1','officeDocument','xl/workbook.xml'))},
+    {name:'xl/workbook.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Foglio1" sheetId="1" r:id="rId1"/></sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`},
+    {name:'xl/_rels/workbook.xml.rels',data:RS(R('rId1','worksheet','worksheets/sheet1.xml')+R('rId2','styles','styles.xml'))},
+    {name:'xl/worksheets/sheet1.xml',data:sheet},
+    {name:'xl/worksheets/_rels/sheet1.xml.rels',data:RS(R('rId1','drawing','../drawings/drawing1.xml'))},
+    {name:'xl/drawings/drawing1.xml',data:drawing},
+    {name:'xl/drawings/_rels/drawing1.xml.rels',data:RS(R('rId1','chart','../charts/chart1.xml'))},
+    {name:'xl/charts/chart1.xml',data:chart},{name:'xl/styles.xml',data:styles}
+  ],'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+}
+// ===================== DATI TECNICI =====================
+const LOC = {
+  agrigento:{n:'Agrigento',zona:'Sud',lat:37.3,tp:3,ins:1700,zc:'B'},
+  palermo:{n:'Palermo',zona:'Sud',lat:38.1,tp:5,ins:1750,zc:'B'},
+  napoli:{n:'Napoli',zona:'Sud',lat:40.85,tp:2,ins:1600,zc:'C'},
+  bari:{n:'Bari',zona:'Sud',lat:41.1,tp:0,ins:1600,zc:'C'},
+  roma:{n:'Roma',zona:'Centro',lat:41.9,tp:0,ins:1550,zc:'D'},
+  firenze:{n:'Firenze',zona:'Centro',lat:43.8,tp:0,ins:1450,zc:'D'},
+  milano:{n:'Milano',zona:'Nord',lat:45.5,tp:-5,ins:1300,zc:'E'},
+  torino:{n:'Torino',zona:'Nord',lat:45.1,tp:-8,ins:1350,zc:'E'},
+  bolzano:{n:'Bolzano',zona:'Nord',lat:46.5,tp:-15,ins:1400,zc:'E'}
+};
+// Caleffi Idraulica 29, pag. 19 - impianti combinati, m² ogni 10 m² di superficie abitata
+const ZONE = {
+  Nord:{small:[0.70,0.90],big:[0.60,0.75]},
+  Centro:{small:[0.60,0.75],big:[0.50,0.60]},
+  Sud:{small:[0.50,0.65],big:[0.40,0.50]}
+};
+// Riello RPS 25/4 (scheda 05/2018)
+const PANEL = {n:'Riello RPS 25/4',Alorda:2.301,Aap:2.152,Aass:2.14,lungh:2.004,larg:1.195,sp:0.085,peso:44,vol:1.6,
+  eta0:0.802,a1:4.28,a2:0.0064,tstag:197,maxV:10,maxO:6,pV:1.20,pO:2.10};
+// Tab. 7A - perdite di carico continue, tubi in acciaio, acqua 50°C (G in l/h)
+const PIPE_R = [2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,35,40,45,50,60,70,80,90,100,150,200];
+const PIPES = [
+ {de:30,di:25.4,g:[303,439,545,636,717,790,858,921,981,1038,1092,1144,1195,1243,1290,1400,1504,1602,1695,1868,2029,2179,2320,2455,3049,3556]},
+ {de:33.7,di:29.1,g:[436,632,785,916,1032,1137,1235,1326,1413,1494,1573,1648,1720,1789,1856,2016,2165,2306,2439,2689,2920,3136,3340,3534,4390,5120]},
+ {de:38,di:32.8,g:[601,871,1082,1262,1422,1567,1702,1828,1947,2059,2167,2270,2370,2465,2558,2778,2984,3177,3362,3706,4024,4322,4603,4870,6049,7055]},
+ {de:42.4,di:37.2,g:[842,1220,1516,1768,1992,2196,2384,2561,2727,2885,3036,3181,3320,3454,3584,3892,4180,4452,4710,5192,5638,6056,6450,6823,8475,9885]},
+ {de:44.5,di:39.3,g:[976,1414,1756,2048,2307,2544,2762,2967,3160,3343,3518,3685,3846,4002,4152,4509,4843,5158,5457,6015,6532,7016,7472,7905,9819,11452]},
+ {de:48.3,di:43.1,g:[1250,1810,2248,2622,2955,3257,3537,3799,4046,4281,4504,4719,4925,5124,5317,5774,6201,6605,6987,7703,8365,8984,9568,10122,12573,14664]},
+ {de:54,di:48.8,g:[1743,2525,3136,3658,4121,4543,4934,5299,5644,5971,6283,6582,6870,7148,7416,8054,8650,9212,9746,10744,11667,12531,13346,14119,17538,20454]},
+ {de:57,di:51.2,g:[1982,2871,3567,4160,4687,5167,5611,6026,6418,6790,7145,7486,7813,8129,8434,9159,9837,10477,11084,12219,13269,14251,15177,16057,19945,23262]},
+ {de:60.3,di:54.5,g:[2343,3395,4216,4918,5541,6108,6633,7124,7587,8027,8447,8849,9236,9610,9971,10828,11629,12385,13103,14445,15686,16847,17942,18982,23578,27499]},
+ {de:70,di:64.2,g:[3634,5265,6539,7627,8594,9474,10288,11049,11767,12450,13101,13724,14325,14904,15464,16793,18036,19208,20321,22403,24328,26128,27827,29440,36568,42649]},
+ {de:76.1,di:70.3,g:[4635,6714,8340,9727,10959,12082,13120,14091,15007,15887,16707,17503,18268,19007,19721,21416,23001,24496,25916,28570,31025,33321,35488,37545,46635,54391]},
+ {de:88.9,di:82.5,g:[7115,10308,12804,14933,16826,18549,20143,21634,23041,24376,25651,26872,28048,29181,30278,32880,35314,37609,39789,43864,47633,51159,54485,57642,71599,null]}
+];
+// DPR 412/93 All. B - spessori minimi isolante (mm)
+const INS_L = [0.030,0.032,0.034,0.036,0.038,0.040,0.042,0.044,0.046,0.048,0.050];
+const INS_C = ['< 20','20–39','40–59','60–79','80–99','≥ 100'];
+const INS_T = [[13,19,26,33,37,40],[14,21,29,36,40,44],[15,23,31,39,44,48],[17,25,34,43,47,52],[18,28,37,46,51,56],[20,30,40,50,55,60],[22,32,43,54,59,64],[24,35,46,58,63,69],[26,38,50,62,68,74],[28,41,54,66,72,79],[30,44,58,71,77,84]];
+const INS_MAT = {
+  nbr:{n:'Gomma nitrilica (NBR)',l:0.035,tmax:105,d:'Scelta della traccia. Ottima flessibilità, ma regge ~105 °C: va bene sui tratti interni lontani dai collettori.'},
+  epdm:{n:'EPDM alta temperatura',l:0.040,tmax:175,d:'Specifico per il solare: resiste a 150–175 °C, adatto vicino ai collettori dove si arriva in stagnazione.'},
+  lana:{n:'Lana di roccia + lamierino',l:0.040,tmax:250,d:'Resiste a temperature altissime, richiede rivestimento rigido (alluminio) per esterno.'},
+  pu:{n:'Poliuretano espanso',l:0.030,tmax:110,d:'Molto isolante, ma limite termico basso per il circuito solare.'}
+};
+const INS_POS = {
+  est:{n:'All’esterno (tetto, sottotetto freddo)',k:1,d:'Spessore pieno + protezione da UV, acqua e animali (lamiera zincata o alluminio).'},
+  loc:{n:'In locali non riscaldati',k:1,d:'Spessore pieno della tabella.'},
+  mont:{n:'Montanti verticali entro l’isolamento dell’edificio',k:0.5,d:'Spessore × 0,5 (nota tabella DPR 412).'},
+  corr:{n:'Correnti in strutture interne non affacciate all’esterno',k:0.3,d:'Spessore × 0,3 (nota tabella DPR 412).'}
+};
+const INS_COMM = [6,9,13,19,25,32,40,50,60,70,80];
+const GLYCOL = [{p:30,t:-13,rho:1.029},{p:40,t:-21,rho:1.037},{p:50,t:-32,rho:1.045}];
+const TANKS = [200,300,400,500,600,750,800,1000,1250,1500,2000];
+const VASI = [8,12,18,24,25,35,50,80,100];
+
+function rFromG(p,G){
+  const g=p.g; if(G<=g[0]) return PIPE_R[0]*(G/g[0])**1.8; // estrapolazione ~G^1.8
+  for(let i=1;i<g.length;i++){ if(g[i]==null) return null; if(G<=g[i]){const t=(G-g[i-1])/(g[i]-g[i-1]);return lerp(PIPE_R[i-1],PIPE_R[i],t)} }
+  return null;
+}
+function vel(G,di){return G/3.6e6/(Math.PI*(di/1000)**2/4)}
+function insCol(de){return de<20?0:de<40?1:de<60?2:de<80?3:de<100?4:5}
+function insThick(lam,de){
+  const c=insCol(de); lam=clamp(lam,0.030,0.050);
+  let i=INS_L.findIndex(v=>v>=lam-1e-9); if(i<0) i=INS_L.length-1; if(Math.abs(INS_L[i]-lam)<1e-6||i===0) return {s:INS_T[i][c],i0:i,i1:i,c};
+  const t=(lam-INS_L[i-1])/(INS_L[i]-INS_L[i-1]);
+  if(t<1e-6) return {s:INS_T[i-1][c],i0:i-1,i1:i-1,c};
+  return {s:lerp(INS_T[i-1][c],INS_T[i][c],t),i0:i-1,i1:i,c,t};
+}
+function orientLoss(az){const a=Math.abs(az);if(a<=15)return a/15*0.5;if(a<=30)return lerp(0.5,2.5,(a-15)/15);if(a<=45)return lerp(2.5,3.5,(a-30)/15);return lerp(3.5,12,(a-45)/45)}
+function collLoss(G){return 20*(G/500)**2} // mbar, approssimazione curva Riello
+// ===================== DATI TRACCIA 2 (diagnostica e manutenzione) =====================
+const COMPS=[
+ {k:'coll',n:'Collettori solari piani',d:'Captano la radiazione solare e la trasferiscono al fluido termovettore (acqua e glicole). Assorbitore selettivo, vetro solare, isolamento posteriore e telaio di contenimento.'},
+ {k:'sonda',n:'Sonda collettore (S1)',d:'Sonda di temperatura nel pozzetto sulla mandata dell’ultimo collettore, nel punto più caldo. Materiali resistenti oltre 200 °C.'},
+ {k:'sfiato',n:'Valvola di sfiato con rubinetto',d:'Nel punto più alto del circuito. Elimina l’aria in fase di riempimento e avvio; poi va chiusa, altrimenti in stagnazione il fluido uscirebbe sotto forma di vapore.'},
+ {k:'vs',n:'Valvola di sicurezza 5-6 bar',d:'Taratura elevata (5-6 bar): contiene le dimensioni del vaso d’espansione e alza la temperatura di ebollizione del fluido. Lo scarico va in una tanica di raccolta, non in fognatura.'},
+ {k:'vaso',n:'Vaso d’espansione solare',d:'Deve contenere sia la dilatazione del fluido liquido sia il vapore che si forma nei collettori in stagnazione. Sul ritorno, attacco verso il basso, senza isolamento.'},
+ {k:'disaer',n:'Disaeratore automatico',d:'Separa in modo continuo le microbolle d’aria durante l’esercizio. Va sul ritorno, nella parte bassa del circuito dove non si forma vapore.'},
+ {k:'pompa',n:'Circolatore solare',d:'Dimensionato su portata e prevalenza necessarie a vincere le resistenze di collettori, tubi, scambiatore e pezzi speciali. Comandato dalla centralina.'},
+ {k:'regol',n:'Regolatore di portata e flussimetro',d:'Consente di tarare e leggere la portata del circuito primario. Una portata ridotta segnala aria, depositi o pompa difettosa.'},
+ {k:'ritegno',n:'Valvole di ritegno (ball-stop)',d:'Su mandata e ritorno: impediscono la circolazione naturale parassita di notte, quando il serbatoio è più caldo dei collettori.'},
+ {k:'centr',n:'Centralina differenziale',d:'Confronta la temperatura del collettore (S1) e quella della parte bassa del serbatoio (S2): accende la pompa sopra circa 7 K di differenza, la spegne sotto 3 K e la ferma a T max del serbatoio.'},
+ {k:'serb',n:'Serbatoio combinato tank in tank',d:'Serbatoio esterno con acqua tecnica per il riscaldamento e serbatoio interno per l’acqua calda sanitaria. Il serpentino solare scalda la parte bassa.'},
+ {k:'cald',n:'Caldaia integrativa',d:'Murale o a basamento. Interviene sulla parte alta del serbatoio quando il solare non basta a mantenere la temperatura richiesta.'},
+ {k:'misc',n:'Miscelatore termostatico ACS',d:'Tra serbatoio e rete sanitaria: l’acqua accumulata può arrivare a 85-90 °C, il miscelatore la porta a 45-50 °C contro le scottature.'},
+ {k:'rad',n:'Pannelli radianti a pavimento',d:'Impianto di emissione a bassa temperatura (30-35 °C): permette al solare di contribuire anche d’inverno.'},
+ {k:'iso',n:'Isolamento termico delle tubazioni',d:'Spessori secondo la Legge 10 (DPR 412). All’esterno protetto da acqua, raggi UV, roditori e uccelli con lamiera zincata o alluminio. Resistente alle alte temperature.'}
+];
+const PANEL_TYPES={
+ piano:{n:'Piani vetrati',d:'Assorbitore metallico selettivo, vetro, isolante e involucro. Fino a 90-95 °C, rendimento buono e costo contenuto: i più usati negli impianti civili.'},
+ vuoto:{n:'Sottovuoto',d:'Tubi di vetro sottovuoto con assorbitore interno. Disperdono poco: utili nei climi freddi, fino a 115-120 °C, ma costosi.'},
+ scop:{n:'Scoperti (senza vetro)',d:'Assorbitore in plastica senza copertura: non superano 40-45 °C. Usati per piscine.'}
+};
+const TANK_TYPES={
+ tit:{n:'Combinato tank in tank',d:'Doppio contenitore: il serbatoio piccolo interno produce l’ACS, quello grande esterno alimenta il riscaldamento. Semplifica il collegamento dei circuiti dell’impianto combinato.'},
+ ds:{n:'A doppio serpentino',d:'Serpentino solare in basso e serpentino della caldaia in alto: integra il calore solare con quello della caldaia fino alla temperatura d’uso.'},
+ ss:{n:'A semplice serpentino',d:'Solo serpentino solare: serve ad accumulare calore, usato in impianti piccoli e medi o come preriscaldo.'},
+ inter:{n:'Ad intercapedine',d:'Il fluido dei pannelli circola in un’intercapedine laterale. Adatti a piccoli impianti.'},
+ ext:{n:'Con scambiatore esterno',d:'Serbatoio semplice e scambiatore a piastre o a fascio tubiero esterno: scambia potenze maggiori, meno soggetto a blocchi da incrostazioni.'}
+};
+const REGS={
+ prim:{n:'Circuito primario: centralina differenziale',d:'La centralina confronta la sonda del collettore S1 con la sonda S2 nella parte bassa del serbatoio. Pompa ON se S1 − S2 > ΔT on (circa 7 K), OFF se S1 − S2 < ΔT off (circa 3 K) oppure se il serbatoio ha raggiunto la T max.'},
+ tit:{n:'Impianto combinato con serbatoio tank in tank',d:'Il termostato nella parte alta del serbatoio attiva la pompa della caldaia integrativa quando la temperatura scende sotto il valore richiesto. Priorità all’ACS; il circuito radiante preleva acqua tecnica tramite valvola miscelatrice a 30-35 °C.'},
+ dev:{n:'Doppio bollitore con valvola deviatrice',d:'Una valvola deviatrice a tre vie, comandata da un termostato sull’uscita del serbatoio solare, stabilisce se l’acqua può andare direttamente all’utenza (abbastanza calda) o deve passare nel bollitore della caldaia per l’integrazione.'},
+ acs:{n:'ACS con caldaia integrativa',d:'Bollitore a doppio serpentino: il solare scalda la parte bassa, il serpentino della caldaia la parte alta. Il termostato alto accende la caldaia solo quando la temperatura scende sotto la soglia (es. 45 °C).'}
+};
+// guasti: comp = componente da evidenziare nello schema, fx = effetto grafico
+const FAULTS=[
+ {k:'caldo',n:'Acqua troppo calda nel serbatoio',comp:'serb',fx:'caldo',def:1,
+  sint:'Temperatura dell’accumulo oltre il limite omologato (oltre 85-90 °C), ACS bollente ai rubinetti, intervento della valvola temperatura/pressione.',
+  ver:'Lettura del termometro del serbatoio e della centralina; prova della T max impostata.',
+  causa:'T max della centralina o termostato di sicurezza starati, forte insolazione con pochi prelievi (estate, casa vuota).',
+  corr:'Ritarare la T max, sostituire il termostato difettoso; installare comando a valvola elettrica a 2 vie o fermo pompa e valvola combinata T/P alla sommità.',
+  prev:'Controllo annuale di termostati e miscelatore; in estate dissipatore o copertura parziale dei collettori. Ricordare il limite di 60 °C dei tubi zincati (dezincatura).'},
+ {k:'vetro',n:'Vetro dei collettori sporco',comp:'coll',fx:'vetro',def:1,
+  sint:'Resa ridotta: a parità di sole il collettore si scalda meno e la pompa lavora poche ore.',
+  ver:'Ispezione visiva dei vetri; confronto delle temperature registrate con giornate simili.',
+  causa:'Depositi di polvere, salsedine, foglie, guano; la pioggia da sola non basta.',
+  corr:'Lavaggio manuale con acqua demineralizzata e detergente neutro, nelle ore fresche (vetro freddo).',
+  prev:'Pulizia almeno annuale, più frequente in zone polverose o vicino al mare.'},
+ {k:'stag',n:'Stagnazione e degrado del fluido antigelo',comp:'coll',fx:'stag',def:1,
+  sint:'Pressione alta, vapore nei collettori, valvola di sicurezza che scarica, fluido scuro e con odore acre, pH sotto 7.',
+  ver:'Rifrattometro per la percentuale di glicole e il punto di congelamento; cartina o pHmetro; manometro.',
+  causa:'Pompa ferma con forte sole: in stagnazione si superano 100-150 °C e il glicole oltre 115-120 °C si degrada e diventa aggressivo.',
+  corr:'Sostituzione completa del fluido, controllo di guarnizioni, raccordi, tenute della pompa e valvole.',
+  prev:'Analisi del fluido almeno ogni 2 anni (meglio ogni anno), vaso dimensionato anche per il vapore, eventuale dissipatore.'},
+ {k:'calc',n:'Calcare e depositi nel circuito',comp:'regol',fx:'calc',def:1,
+  sint:'Portata ridotta al flussimetro, grande differenza di temperatura tra mandata e ritorno, pompa rumorosa.',
+  ver:'Lettura del flussimetro e dei termometri su mandata e ritorno.',
+  causa:'Acqua dura usata per la miscela, depositi e residui di lavorazione.',
+  corr:'Lavaggio chimico disincrostante del circuito e pulizia dei filtri.',
+  prev:'Miscela preparata con acqua demineralizzata, controllo della durezza.'},
+ {k:'aria',n:'Aria nel circuito',comp:'sfiato',fx:'aria',def:1,
+  sint:'Rumori e gorgoglii nelle tubazioni, portata instabile, pompa che gira a vuoto.',
+  ver:'Ascolto, flussimetro che oscilla, controllo della pressione al manometro.',
+  causa:'Riempimento non corretto, sfiati aperti, piccole perdite.',
+  corr:'Sfiato manuale dalle valvole alte fino all’assenza di bolle, ripristino della pressione, richiusura dei rubinetti degli sfiati.',
+  prev:'Disaeratore automatico sul ritorno, controllo periodico della pressione.'},
+ {k:'vaso',n:'Vaso d’espansione: membrana o precarica',comp:'vaso',fx:'vaso',def:1,
+  sint:'Pressione che oscilla molto tra freddo e caldo, valvola di sicurezza che scarica, rabbocchi frequenti.',
+  ver:'Con il circuito scarico lato vaso, misura della precarica alla valvolina; se esce fluido la membrana è rotta.',
+  causa:'Perdita di precarica nel tempo, membrana danneggiata dal calore.',
+  corr:'Ripristino della precarica o sostituzione del vaso.',
+  prev:'Verifica annuale della precarica; vaso installato sul ritorno e non isolato.'},
+ {k:'vsic',n:'Valvola di sicurezza o di sfiato difettosa',comp:'vs',fx:'vsic',def:1,
+  sint:'Tanica di raccolta che si riempie, calo di pressione; oppure valvola bloccata che non apre.',
+  ver:'Prova manuale di apertura, controllo della tanica e delle valvole di sfiato.',
+  causa:'Sporco sulla sede, molla stanca, incrostazioni.',
+  corr:'Pulizia o sostituzione della valvola.',
+  prev:'Prova di funzionamento annuale.'},
+ {k:'paras',n:'Circolazione parassita notturna',comp:'ritegno',fx:'paras',def:0,
+  sint:'Il serbatoio si raffredda di notte, i collettori risultano tiepidi prima dell’alba.',
+  ver:'Confronto della temperatura del serbatoio la sera e la mattina, con pompa ferma.',
+  causa:'Valvola di ritegno sporca o assente.',
+  corr:'Pulizia o sostituzione delle valvole di ritegno o ball-stop.',
+  prev:'Ritegno su mandata e ritorno, eventuali sifoni ed elettrovalvole di protezione.'},
+ {k:'sonda',n:'Sonda o centralina guasta',comp:'centr',fx:'sonda',def:0,
+  sint:'Pompa ferma con il sole o sempre accesa anche di notte.',
+  ver:'Misura della resistenza della sonda (PT1000: circa 1000 Ω a 0 °C, 1385 Ω a 100 °C), test manuale dell’uscita della centralina.',
+  causa:'Sonda bruciata, cavo interrotto, sonda fuori dal pozzetto.',
+  corr:'Sostituzione della sonda o del cavo (schermato), riposizionamento corretto nel pozzetto.',
+  prev:'Verifica annuale delle letture della centralina.'},
+ {k:'pompa',n:'Circolatore bloccato',comp:'pompa',fx:'pompa',def:0,
+  sint:'La centralina comanda la pompa ma la portata è zero; collettori molto caldi.',
+  ver:'Flussimetro fermo, rumore, assorbimento elettrico.',
+  causa:'Albero bloccato da depositi dopo lunghe fermate, avvolgimento guasto.',
+  corr:'Sblocco dell’albero o sostituzione del circolatore.',
+  prev:'Controllo annuale di portata e rumorosità.'}
+];
+// attività del controllo periodico (durate in minuti, come nell’esercizio in classe)
+const ACTS=[
+ {id:'vetri',n:'Pulizia superfici vetrate pann.',d:120,inc:1,mod:'Lavaggio dei vetri con acqua demineralizzata e detergente neutro; controllo visivo di guarnizioni e telai.',str:'Spazzola morbida, acqua demineralizzata, DPI anticaduta',freq:'Annuale'},
+ {id:'glic',n:'Controllo perc. Glicole',d:60,inc:1,mod:'Prelievo del fluido e misura della concentrazione di glicole e del punto di congelamento.',str:'Rifrattometro',freq:'Annuale'},
+ {id:'ph',n:'Determinazione pH fluido vet.',d:20,inc:1,mod:'Misura del pH del fluido: sotto 7 il fluido è degradato e va sostituito.',str:'Cartine tornasole o pHmetro',freq:'Annuale'},
+ {id:'vaso',n:'Verifica membrana V. espan.',d:60,inc:1,mod:'Isolamento del vaso, scarico lato fluido, misura e ripristino della precarica.',str:'Manometro, compressore o azoto',freq:'Annuale'},
+ {id:'sfiato',n:'Verifica valvole di sfiato',d:60,inc:1,mod:'Sfiato dell’aria dai punti alti, verifica della tenuta e chiusura dei rubinetti.',str:'Chiave, contenitore di raccolta',freq:'Annuale'},
+ {id:'sic',n:'Verifica valvole di sicurezza',d:60,inc:1,mod:'Prova di apertura manuale, controllo dello scarico e della tanica di raccolta.',str:'Manometro, tanica',freq:'Annuale'},
+ {id:'press',n:'Controllo pressione circuito',d:15,inc:0,mod:'Lettura della pressione a freddo e confronto con il valore di riempimento.',str:'Manometro',freq:'Semestrale'},
+ {id:'centr',n:'Verifica centralina e sonde',d:30,inc:0,mod:'Lettura delle temperature, prova manuale del relè pompa, misura della resistenza delle sonde.',str:'Multimetro',freq:'Annuale'},
+ {id:'pompa',n:'Controllo circolatore e portata',d:20,inc:0,mod:'Verifica della portata al flussimetro e della rumorosità del circolatore.',str:'Flussimetro, orecchio',freq:'Annuale'},
+ {id:'iso',n:'Verifica isolamento tubazioni',d:30,inc:0,mod:'Controllo visivo dei tratti esterni, rivestimenti e danni da animali.',str:'Ispezione visiva',freq:'Annuale'},
+ {id:'misc',n:'Verifica miscelatore ACS',d:20,inc:0,mod:'Misura della temperatura ai rubinetti e taratura del miscelatore.',str:'Termometro a contatto',freq:'Annuale'},
+ {id:'anodo',n:'Controllo anodo di magnesio',d:40,inc:0,mod:'Ispezione del consumo dell’anodo sacrificale e sostituzione se consumato.',str:'Chiave, anodo di ricambio',freq:'Biennale'}
+];
+// ===================== FIGURE (SVG valide sia animate sia per il Word) =====================
+let UID=0;
+function SV(w,h,body,bg='#ffffff'){return {w,h,svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" font-family="Arial, Helvetica, sans-serif">${bg?`<rect width="${w}" height="${h}" fill="${bg}"/>`:''}${body}</svg>`}}
+const T=(x,y,t,o={})=>`<text x="${x}" y="${y}" font-size="${o.s||11}" fill="${o.c||'#33405a'}" font-weight="${o.w||'bold'}" text-anchor="${o.a||'start'}"${o.tr?` transform="${o.tr}"`:''}>${xesc(t)}</text>`;
+const LN=(d,col,on,L,w=5,cls='')=>`<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" opacity="${on?1:0.28}"${L&&on?` class="flow ${cls}"`:''}/>`;
+function sunG(x,y,r=14,L=false){let s='';for(let i=0;i<8;i++){const a=i*Math.PI/4;s+=`<line x1="${x+Math.cos(a)*(r+4)}" y1="${y+Math.sin(a)*(r+4)}" x2="${x+Math.cos(a)*(r+10)}" y2="${y+Math.sin(a)*(r+10)}"/>`}
+  return `<g${L?' class="pulse"':''} stroke="#f5a524" stroke-width="2.5" stroke-linecap="round">${s}</g><circle cx="${x}" cy="${y}" r="${r}" fill="#ffcf5c" stroke="#f5a524" stroke-width="2"/>`}
+function panelRect(x,y,w,h,col='#1d3d73',vert=true){let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="${col}" stroke="#a9c4ef" stroke-width="1.2"/>`;
+  for(let k=1;k<6;k++) s+=vert?`<line x1="${x+w*k/6}" y1="${y+3}" x2="${x+w*k/6}" y2="${y+h-3}" stroke="#4d6fa6" stroke-width=".8"/>`:`<line x1="${x+3}" y1="${y+h*k/6}" x2="${x+w-3}" y2="${y+h*k/6}" stroke="#4d6fa6" stroke-width=".8"/>`;return s}
+
+// ---------- casa in sezione con altezze del sole ----------
+function figHouse({tilt=35,lat=37.3,flat=false,L=false,N=4}){
+  const W=560,H=300,gy=262,x0=180,x1=420,y0=168,mid=(x0+x1)/2;let b='';
+  b+=`<rect width="${W}" height="${gy}" fill="#e6f0fb"/><rect y="${gy}" width="${W}" height="${H-gy}" fill="#c9d8a8"/>`;
+  b+=T(10,gy+22,'SUD')+T(W-48,gy+22,'NORD');
+  b+=`<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${gy-y0}" fill="#efe4cf" stroke="#9b8c70" stroke-width="2"/>`;
+  for(let p=0;p<2;p++)for(let i=0;i<3;i++)b+=`<rect x="${x0+24+i*85}" y="${gy-40-p*46}" width="22" height="26" fill="#cfe3f5" stroke="#55606f"/>`;
+  let P;
+  if(flat){b+=`<rect x="${x0-6}" y="${y0-8}" width="${x1-x0+12}" height="8" fill="#8b5e3c"/>`;const Lp=60,a=rad(tilt);
+    for(let i=0;i<2;i++){const bx=x0+30+i*110;b+=`<line x1="${bx}" y1="${y0-8}" x2="${bx+Lp*Math.cos(a)}" y2="${y0-8-Lp*Math.sin(a)}" stroke="#1d3d73" stroke-width="8" stroke-linecap="round"/><line x1="${bx+Lp*Math.cos(a)}" y1="${y0-8-Lp*Math.sin(a)}" x2="${bx+Lp*Math.cos(a)}" y2="${y0-8}" stroke="#777" stroke-width="2"/>`}
+    P=[x0+30+Lp*Math.cos(a)/2,y0-8-Lp*Math.sin(a)/2];
+  } else {
+    const t=Math.tan(rad(tilt)),xs=x0-22,rise=t*(mid-xs);
+    b+=`<polygon points="${xs},${y0} ${mid},${y0-rise} ${x1+22},${y0}" fill="#b5523b" stroke="#7d3424" stroke-width="2"/>`;
+    const ya=x=>y0-t*(x-xs)-6, xa=x0, xb=mid-22;
+    b+=`<line x1="${xa}" y1="${ya(xa)}" x2="${xb}" y2="${ya(xb)}" stroke="#1d3d73" stroke-width="9" stroke-linecap="round"/>`;
+    b+=`<path d="M ${xs+38} ${y0} A 38 38 0 0 0 ${xs+38*Math.cos(rad(tilt))} ${y0-38*Math.sin(rad(tilt))}" fill="none" stroke="#fff" stroke-width="1.5"/>`+T(xs+42,y0-6,tilt+'°',{c:'#fff'});
+    P=[(xa+xb)/2,ya((xa+xb)/2)];
+  }
+  const suns=[[90-lat-23.45,'21 dicembre','#2f7fd8'],[90-lat+23.45,'21 giugno','#e0482f']];
+  suns.forEach(([a,lb,c],i)=>{const R=i?150:230,sx=Math.max(26,P[0]-R*Math.cos(rad(a))),sy=Math.max(24,P[1]-R*Math.sin(rad(a)));
+    b+=`<line x1="${sx}" y1="${sy}" x2="${P[0]}" y2="${P[1]}" stroke="${c}" stroke-width="2.5" stroke-dasharray="6 5"${L?' class="flow slow"':''}/>`+sunG(sx,sy,12,L)+T(sx+18,sy+(i?-14:20),`${lb}: ${f1(a)}°`,{c})});
+  b+=T(W-10,20,`Latitudine ${f1(lat)}° N`,{a:'end'});
+  return SV(W,H,b);
+}
+function figCompass(az,loss){
+  const c=95,r=72,a=rad(az),vx=-Math.sin(a),vy=Math.cos(a),col=loss<2.6?'#1f9d63':loss<4?'#d98a0b':'#d23c3c';let s='';
+  [[45,'#fde3c4'],[30,'#d7f0e2']].forEach(([d,cl])=>{s+=`<path d="M${c},${c} L${c-Math.sin(rad(d))*r},${c+Math.cos(rad(d))*r} A${r},${r} 0 0 0 ${c+Math.sin(rad(d))*r},${c+Math.cos(rad(d))*r} Z" fill="${cl}"/>`});
+  return SV(190,200,`<circle cx="${c}" cy="${c}" r="${r}" fill="#fff" stroke="#c9c1ad"/>${s}${T(c,16,'N',{a:'middle'})}${T(c,c+r+16,'S',{a:'middle'})}${T(c+r+6,c+4,'E')}${T(c-r-16,c+4,'O')}<line x1="${c}" y1="${c}" x2="${c+vx*r*.9}" y2="${c+vy*r*.9}" stroke="${col}" stroke-width="5" stroke-linecap="round"/><circle cx="${c}" cy="${c}" r="6" fill="${col}"/>${T(c,c-16,'perdita ≈ '+f1(loss)+'%',{a:'middle'})}`,'#f7f3ea');
+}
+// ---------- pannelli ----------
+function figPanelType(type='piano',L=false){
+  const W=460,H=250;let b=`<rect width="${W}" height="${H}" fill="#eef4fb"/>`+sunG(42,38,13,L);
+  for(let i=0;i<4;i++)b+=`<line x1="${62+i*12}" y1="${52+i*4}" x2="${170+i*45}" y2="96" stroke="#f5a524" stroke-width="2.5"${L?` class="ray" style="animation-delay:${i*.3}s"`:''}/>`;
+  if(type==='piano'){
+    b+=`<rect x="130" y="96" width="300" height="10" fill="#bfe3ff" stroke="#6aa9d6"/>`+T(134,91,'Vetro solare temprato 3,2 mm');
+    b+=`<rect x="130" y="128" width="300" height="8" fill="#1d2a44"/>`+T(134,123,'Assorbitore selettivo: α 95%, ε 4%');
+    for(let i=0;i<7;i++)b+=`<circle cx="${150+i*42}" cy="140" r="5" fill="#e0482f" stroke="#7d1c10"/>`;
+    b+=`<rect x="130" y="162" width="300" height="24" fill="#e9d7a6" stroke="#b49a5b"/>`+T(134,157,'Isolante in lana minerale 40 mm');
+    b+=`<rect x="124" y="190" width="312" height="10" fill="#9aa3ad"/>`+T(134,218,'Telaio e fondo in alluminio');
+    b+=T(10,236,'Fino a 90-95 °C · i più usati negli impianti civili',{c:'#5f6878',w:'normal'});
+  } else if(type==='vuoto'){
+    for(let i=0;i<7;i++){const x=140+i*42;b+=`<rect x="${x}" y="96" width="30" height="120" rx="15" fill="#d8ecfa" stroke="#6aa9d6" stroke-width="2"/><rect x="${x+8}" y="104" width="14" height="104" rx="7" fill="#1d2a44"/><line x1="${x+15}" y1="104" x2="${x+15}" y2="208" stroke="#e0482f" stroke-width="3"/>`}
+    b+=`<rect x="130" y="84" width="310" height="12" fill="#9aa3ad"/>`+T(134,78,'Collettore di testa');
+    b+=T(140,236,'Tubi di vetro sottovuoto: dispersioni minime, fino a 115-120 °C',{c:'#5f6878',w:'normal'});
+  } else {
+    b+=`<rect x="130" y="110" width="300" height="50" fill="#262626"/>`;for(let i=0;i<12;i++)b+=`<line x1="${140+i*24}" y1="112" x2="${140+i*24}" y2="158" stroke="#555" stroke-width="6"/>`;
+    b+=T(134,104,'Assorbitore in plastica senza vetro')+T(140,236,'Non superano 40-45 °C: usati per piscine',{c:'#5f6878',w:'normal'});
+  }
+  return SV(W,H,b,null);
+}
+function figTiles(Sreq,N,A){
+  const W=560,H=200;let b='';const n=Math.ceil(Sreq),full=Math.floor(Sreq),part=Sreq-full;
+  for(let i=0;i<Math.min(n,40);i++){const x=14+(i%8)*30,y=28+Math.floor(i/8)*30,fw=i<full?26:26*part;
+    b+=`<rect x="${x}" y="${y}" width="26" height="26" fill="#fff" stroke="#c9c1ad"/><rect x="${x}" y="${y}" width="${fw}" height="26" fill="#2a5aa0"/>`}
+  b+=T(14,18,`Superficie necessaria: ${f2(Sreq)} m² (1 quadrato = 1 m²)`);
+  b+=`<path d="M262,100 l30,0 m-10,-8 l10,8 l-10,8" stroke="#33405a" stroke-width="3" fill="none"/>`;
+  const pw=Math.min(52,230/N);for(let i=0;i<N;i++)b+=panelRect(306+i*(pw+4),40,pw,88);
+  b+=T(306,18,`${N} pannelli RPS 25/4`)+T(306,152,`${N} × ${f2(A)} m² = ${f2(N*A)} m²`,{s:13,c:'#16325c'});
+  return SV(W,H,b,'#f7f3ea');
+}
+// ---------- tetto in pianta ----------
+function figRoof(D){
+  const Ly=D.layout,W=S.W,Lr=S.L,sc=Math.min(560/W,300/Lr),ox=30,oy=30,w=W*sc,h=Lr*sc,flat=S.roof==='piano';
+  let b=`<rect x="${ox}" y="${oy}" width="${w}" height="${h}" fill="${flat?'#d9d4c7':'#c4614a'}" stroke="#6d2c20" stroke-width="2"/>`;
+  if(!flat)for(let y=oy+8;y<oy+h;y+=10)b+=`<line x1="${ox}" y1="${y}" x2="${ox+w}" y2="${y}" stroke="#a84a37" stroke-width="1"/>`;
+  b+=`<rect x="${ox+S.margin*sc}" y="${oy+S.margin*sc}" width="${(W-2*S.margin)*sc}" height="${(Lr-2*S.margin)*sc}" fill="none" stroke="#fff" stroke-dasharray="6 5" stroke-width="1.5"/>`;
+  b+=T(ox,oy-10,flat?'Lato Nord':'COLMO')+T(ox,oy+h+18,(flat?'Lato Sud':'GRONDA, lato Sud')+` · larghezza ${f2(W)} m`)+T(ox+w+8,oy+h/2,`${flat?'profondità':'falda'} ${f2(Lr)} m`,{tr:`rotate(90 ${ox+w+8} ${oy+h/2})`,a:'middle'});
+  S.obs.forEach(o=>{b+=`<rect x="${ox+o.x*sc}" y="${oy+o.y*sc}" width="${o.w*sc}" height="${o.h*sc}" fill="#7a6f66" stroke="#333"/>`+T(ox+o.x*sc,oy+o.y*sc-3,o.t,{s:10,c:'#fff'})});
+  Ly.panels.forEach((p,i)=>{const x=ox+p.x*sc,y=oy+p.y*sc,pw=p.w*sc,ph=p.h*sc;if(flat)b+=`<rect x="${x}" y="${y+ph}" width="${pw}" height="${Ly.dRow*sc}" fill="#000" opacity=".12"/>`;
+    b+=panelRect(x,y,pw,ph,p.ok?'#1d3d73':'#d23c3c',S.orient==='V')+T(x+pw/2,y+ph/2+4,i+1,{a:'middle',c:'#fff'})});
+  return SV(w+70,h+64,b,'#eef4fb');
+}
+function figConn(D){
+  const N=D.N,lines=D.lines,per=Math.ceil(N/lines),V=S.orient==='V',pw=V?40:70,ph=V?70:40,gap=6,W=Math.max(420,per*(pw+gap)+170),lh=ph+64;
+  let b='',k=0;
+  for(let l=0;l<lines;l++){const y0=26+l*lh,x0=70,n=Math.min(per,N-k);
+    for(let i=0;i<n;i++){const x=x0+i*(pw+gap);b+=panelRect(x,y0,pw,ph,'#1d3d73',V);
+      if(!V)b+=`<path d="M${x+4},${y0+ph-6} H${x+pw-4} V${y0+ph/2} H${x+4} V${y0+8} H${x+pw+gap}" fill="none" stroke="${tcol(32+(i+1)/n*22)}" stroke-width="3"/>`;k++}
+    const xe=x0+n*(pw+gap);
+    if(V)b+=`<line x1="${x0-gap}" y1="${y0+3}" x2="${xe}" y2="${y0+3}" stroke="#e0482f" stroke-width="4"/><line x1="${x0}" y1="${y0+ph-3}" x2="${xe-gap}" y2="${y0+ph-3}" stroke="#2f7fd8" stroke-width="4"/>`;
+    b+=`<path d="M14,${y0+ph-3} H${x0}" stroke="#2f7fd8" stroke-width="5"/>`+T(8,y0+ph+18,'ritorno (freddo)',{c:'#2f7fd8'});
+    b+=`<path d="M${xe-gap},${y0+3} H${xe+60}" stroke="#e0482f" stroke-width="5"/><circle cx="${xe-gap-4}" cy="${y0+3}" r="5" fill="#ffcf5c" stroke="#333"/>`+T(xe-20,y0-8,'mandata + sonda',{c:'#e0482f'});
+  }
+  b+=T(10,lines*lh+30,V?`Montaggio verticale: collettori attraversati in parallelo (arpa), max ${PANEL.maxV} in linea`:`Montaggio orizzontale: collettori in serie, max ${PANEL.maxO} in linea`,{w:'normal'});
+  return SV(W,lines*lh+44,b,'#eef4fb');
+}
+function figPipe(D,L=false){
+  const v=D.pipe.v,sc=Math.min(3,80/(D.pipe.p.de/2+D.insComm)),R=D.pipe.p.de/2*sc,Ri=D.pipe.p.di/2*sc,Ri2=R+D.insComm*sc,cx=110,cy=115;
+  const dur=clamp(0.5/Math.max(v,0.05),0.4,4).toFixed(2);
+  let b=`<circle cx="${cx}" cy="${cy}" r="${Ri2}" fill="#3a3a3a"/><circle cx="${cx}" cy="${cy}" r="${R}" fill="#8892a0"/><circle cx="${cx}" cy="${cy}" r="${Ri}" fill="${tcol(50)}"/>`;
+  b+=T(cx,cy+Ri2+18,`De ${f1(D.pipe.p.de)} + 2 × ${D.insComm} mm isolante`,{a:'middle'});
+  b+=`<rect x="240" y="${cy-R}" width="240" height="${2*R}" fill="#8892a0"/><rect x="240" y="${cy-Ri}" width="240" height="${2*Ri}" fill="#f6c9a0"/>`;
+  b+=`<line x1="240" y1="${cy}" x2="480" y2="${cy}" stroke="${tcol(50)}" stroke-width="${Math.max(4,Ri)}" stroke-dasharray="10 8"${L?` style="animation:flow ${dur}s linear infinite"`:''}/>`;
+  b+=`<rect x="240" y="${cy-Ri2}" width="240" height="${Ri2-R}" fill="#3a3a3a" opacity=".85"/><rect x="240" y="${cy+R}" width="240" height="${Ri2-R}" fill="#3a3a3a" opacity=".85"/>`;
+  b+=T(360,cy-Ri2-10,`G = ${f0(D.G)} l/h · v = ${f2(v)} m/s · r = ${f1(D.pipe.r)} mm c.a./m`,{a:'middle'});
+  return SV(500,230,b,'#eef4fb');
+}
+function figThermo(D){
+  const y=t=>190-(t+35)/50*165;let b=`<rect x="60" y="14" width="22" height="170" rx="11" fill="#fff" stroke="#556"/><circle cx="71" cy="192" r="14" fill="#2f7fd8"/><rect x="64" y="${y(D.L.tp)}" width="14" height="${192-y(D.L.tp)}" fill="#2f7fd8"/>`;
+  [10,0,-10,-20,-30].forEach(t=>b+=`<line x1="82" x2="90" y1="${y(t)}" y2="${y(t)}" stroke="#556"/>`+T(94,y(t)+4,t+'°'));
+  [[D.L.tp,'T esterna di progetto','#2f7fd8'],[D.Tprot,'protezione richiesta (−10 °C)','#d98a0b'],[D.gly.t,`glicole ${D.gly.p}%`,'#1f9d63']].forEach(([t,l,c])=>{b+=`<line x1="40" x2="420" y1="${y(t)}" y2="${y(t)}" stroke="${c}" stroke-dasharray="5 4" stroke-width="2"/>`+T(140,y(t)-4,`${l}: ${t} °C`,{c})});
+  return SV(440,215,b,'#eef4fb');
+}
+// ---------- serbatoi ----------
+function coil(y1,y2,col,on,L,x1=122,x2=232){let d=`M${x1-102},${y1} L${x1},${y1}`;let y=y1,r=0;while(y<y2-10){y+=12;d+=` L${r%2?x1:x2},${y}`;r++}d+=` L${x1},${y2} L${x1-102},${y2}`;return LN(d,col,on,L,3.5)}
+function figTank(type='tit',st={},L=false){
+  const id='tk'+(++UID),Tt=st.Ttop??62,Tb=st.Tbot??34,sol=st.sol??1,boil=st.boil??0,heat=st.heat??(type==='tit'),acs=st.acs??1;
+  let b=`<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${tcol(Tt)}"/><stop offset=".5" stop-color="${tcol((Tt+Tb)/2)}"/><stop offset="1" stop-color="${tcol(Tb)}"/></linearGradient></defs>`;
+  if(type==='inter') b+=`<rect x="108" y="40" width="144" height="236" rx="44" fill="${tcol(48)}" stroke="#33405a" stroke-width="2"/>`;
+  b+=`<rect x="120" y="50" width="120" height="216" rx="38" fill="url(#${id})" stroke="#33405a" stroke-width="3"/>`;
+  if(type==='tit'){b+=`<rect x="146" y="70" width="68" height="110" rx="26" fill="${tcol(Tt-2)}" stroke="#fff" stroke-width="3"/>`+T(180,124,'ACS',{a:'middle',c:'#fff'})+T(180,138,'serbatoio interno',{a:'middle',c:'#fff',s:9})}
+  if(type!=='inter'&&type!=='ext') b+=coil(200,250,'#e0482f',sol,L);
+  if(type==='inter'){b+=LN('M20,250 L108,250','#e0482f',sol,L)+LN('M108,70 L20,70','#2f7fd8',sol,L)}
+  if(type==='ext'){b+=`<rect x="24" y="170" width="48" height="80" rx="4" fill="#c9ced6" stroke="#33405a"/>`;for(let i=0;i<7;i++)b+=`<line x1="${30+i*6}" y1="176" x2="${30+i*6}" y2="244" stroke="#8892a0" stroke-width="2"/>`;
+    b+=T(18,164,'scambiatore')+LN('M2,180 L24,180','#e0482f',sol,L,4)+LN('M24,240 L2,240','#2f7fd8',sol,L,4)+LN('M72,190 L120,190','#f08a3c',sol,L,4)+LN('M120,250 L72,250','#2f7fd8',sol,L,4)}
+  if(type==='ds'){b+=coil(80,130,'#f08a3c',boil,L,122,232)+T(10,74,'caldaia',{c:'#d98a0b'})+`<circle cx="240" cy="110" r="7" fill="#fff" stroke="#33405a"/>`+T(250,114,'termostato')}
+  if(type==='tit'){b+=LN('M340,92 L240,92','#e0482f',boil,L,4)+LN('M240,112 L340,112','#f08a3c',boil,L,4)+T(282,84,'caldaia');
+    b+=LN('M240,160 L350,160','#f08a3c',heat,L,4)+LN('M350,240 L240,240','#2f7fd8',heat,L,4)+T(254,152,'radiante 35 °C')+T(254,258,'ritorno 30 °C')}
+  if(type!=='ext'&&type!=='inter') b+=T(4,194,'da pannelli',{c:'#e0482f'})+T(4,268,'ai pannelli',{c:'#2f7fd8'});
+  if(type==='inter') b+=T(4,244,'da pannelli',{c:'#e0482f'})+T(4,64,'ai pannelli',{c:'#2f7fd8'});
+  b+=LN(type==='tit'?'M180,70 L180,16':'M180,50 L180,16',tcol(Tt),acs,L,4)+T(188,22,'ACS / acqua calda');
+  b+=LN('M240,262 L300,262 L300,296','#2f7fd8',acs,L,3)+T(296,292,'acqua fredda',{a:'end'});
+  b+=T(180,290,TANK_TYPES[type].n,{a:'middle',s:12,c:'#16325c'});
+  return SV(370,300,b,'#eef4fb');
+}
+function figVaso(D,T_=60,L=false){
+  const fr=clamp((T_-20)/130,0,1),mem=40+fr*70,p=D.PI+(D.PF-D.PI)*fr,ang=Math.PI*(1.25-p/8*1.5);
+  let b=`<rect x="110" y="20" width="120" height="170" rx="50" fill="#d23c3c" stroke="#7d1c10" stroke-width="2"/><rect x="116" y="${184-mem}" width="108" height="${mem}" rx="20" fill="${tcol(clamp(T_,20,100))}"/><path d="M116,${184-mem} Q170,${170-mem} 224,${184-mem}" fill="none" stroke="#222" stroke-width="3"/>`;
+  b+=T(170,50,'azoto',{a:'middle',c:'#fff'})+T(170,178-mem/2,'fluido',{a:'middle'})+`<line x1="170" y1="190" x2="170" y2="215" stroke="#2f7fd8" stroke-width="6"/>`+T(180,212,'attacco in basso, non isolato');
+  b+=`<circle cx="310" cy="80" r="40" fill="#fff" stroke="#33405a" stroke-width="2"/><line x1="310" y1="80" x2="${310+32*Math.cos(ang)}" y2="${80-32*Math.sin(ang)}" stroke="#d23c3c" stroke-width="3"/>`+T(310,112,f1(p)+' bar',{a:'middle'});
+  b+=T(10,30,`Fluido a ${T_} °C`,{s:13,c:'#16325c'});if(T_>120)b+=T(10,52,'Vapore nei',{c:'#d23c3c'})+T(10,66,'collettori: il',{c:'#d23c3c'})+T(10,80,'vaso accoglie',{c:'#d23c3c'})+T(10,94,'il fluido',{c:'#d23c3c'});
+  return SV(370,225,b,'#eef4fb');
+}
+function figPump(D){
+  const W=440,H=260,px=46,py=16,pw=W-px-16,ph=H-py-40,Qm=Math.max(1.2,D.G/1000*3),Hm=Math.max(4,Math.ceil(D.Hsys/1000*3)),X=q=>px+q/Qm*pw,Y=h=>py+ph-h/Hm*ph;
+  let b=`<rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="#fff" stroke="#ccc"/>`;
+  for(let i=0;i<=4;i++){const h=Hm*i/4;b+=`<line x1="${px}" x2="${px+pw}" y1="${Y(h)}" y2="${Y(h)}" stroke="#eee"/>`+T(px-4,Y(h)+4,f1(h),{a:'end',w:'normal'})}
+  for(let i=0;i<=4;i++){const q=Qm*i/4;b+=T(X(q),py+ph+14,f2(q),{a:'middle',w:'normal'})}
+  b+=T(px+pw/2,H-6,'portata (m³/h)',{a:'middle'})+T(14,py+ph/2,'prevalenza (m c.a.)',{a:'middle',tr:`rotate(-90 14 ${py+ph/2})`});
+  const hm=D.Hsys/1000*1.8,qm=D.G/1000*2.2;let d='';for(let q=0;q<=qm;q+=qm/40)d+=`${q?'L':'M'}${X(q)},${Y(hm*(1-(q/qm)**2))}`;
+  b+=`<path d="${d}" fill="none" stroke="#2a5aa0" stroke-width="3"/>`+T(X(0)+6,Y(hm)-6,'curva circolatore',{c:'#2a5aa0'});
+  d='';for(let q=0;q<=Qm;q+=Qm/60){const h=D.k*q*q;if(h>Hm)break;d+=`${q?'L':'M'}${X(q)},${Y(h)}`}
+  b+=`<path d="${d}" fill="none" stroke="#e0482f" stroke-width="2.5"/>`+T(X(Qm*.12),Y(D.k*(Qm*.12)**2)-10,'curva impianto',{c:'#e0482f'});
+  const qo=Math.sqrt(hm/(D.k+hm/qm**2));b+=`<circle cx="${X(qo)}" cy="${Y(D.k*qo*qo)}" r="6" fill="#2a5aa0" stroke="#fff" stroke-width="2"/>`+T(X(qo)+10,Y(D.k*qo*qo)+4,'punto di lavoro',{c:'#2a5aa0'});
+  b+=`<circle cx="${X(D.G/1000)}" cy="${Y(D.Hsys/1000)}" r="6" fill="#f5a524" stroke="#333"/>`+T(X(D.G/1000)-8,Y(D.Hsys/1000)+22,`progetto ${f2(D.G/1000)} m³/h · ${f2(D.Hsys/1000)} m`,{a:'end'});
+  return SV(W,H,b,'#eef4fb');
+}
+// ---------- schema completo dell'impianto ----------
+const BADGE={coll:[150,140],sonda:[226,96],sfiato:[268,92],vs:[262,262],vaso:[118,400],disaer:[372,402],pompa:[170,346],regol:[170,300],ritegno:[318,402],centr:[300,150],serb:[520,282],cald:[606,372],misc:[566,240],rad:[640,326],iso:[376,170]};
+function figSchema({L=false,st={},hi=null,fault=null,N=4,nums=true,title=''}={}){
+  const s={sun:1,pump:1,boil:0,heat:1,acs:1,night:0,Tc:60,Tt:58,Tb:38,...st};const f=fault;
+  if(f==='stag'){s.pump=0;s.Tc=150}if(f==='pompa'){s.Tc=125}if(f==='sonda'){s.pump=0;s.Tc=95}if(f==='paras'){s.night=1;s.sun=0;s.pump=0;s.Tc=25}if(f==='caldo'){s.Tt=92;s.Tb=88;s.pump=0}
+  const id='sg'+(++UID),night=s.night;let b='';
+  b+=`<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${tcol(s.Tt)}"/><stop offset="1" stop-color="${tcol(s.Tb)}"/></linearGradient></defs>`;
+  b+=`<rect width="760" height="480" fill="${night?'#1f2b44':'#dbeafa'}"/>`;
+  if(s.sun&&!night){b+=sunG(70,52,18,L);if(f!=='vetro')for(let i=0;i<3;i++)b+=`<line x1="${88+i*10}" y1="${70+i*8}" x2="${130+i*28}" y2="${170-i*12}" stroke="#f5a524" stroke-width="2.5"${L?` class="ray" style="animation-delay:${i*.35}s"`:''}/>`}
+  else b+=`<circle cx="690" cy="50" r="16" fill="#f3f0d0"/><circle cx="698" cy="44" r="15" fill="#1f2b44"/>`;
+  b+=`<polygon points="20,250 330,96 640,250" fill="#b5523b" stroke="#7d3424" stroke-width="3"/><rect x="40" y="250" width="580" height="205" fill="#f4ecdc" stroke="#9b8c70" stroke-width="2"/><rect y="455" width="760" height="25" fill="#9fb978"/>`;
+  // collettori
+  const pw=200/N;let pn='';for(let i=0;i<N;i++)pn+=panelRect(i*pw,-38,pw-3,34,s.Tc>110?tcol(Math.min(s.Tc,100)):'#1d3d73');
+  if(f==='vetro')pn+=`<rect x="0" y="-38" width="200" height="34" fill="#8a6a3a" opacity=".55"/>`+[20,60,95,140,170].map((x,i)=>`<circle cx="${x}" cy="${-30+(i%3)*10}" r="${3+i%2*2}" fill="#5a4320"/>`).join('');
+  b+=`<g transform="translate(70,226) rotate(-26.4)"><rect x="-3" y="-41" width="${200+3}" height="40" fill="#0e1f3d" rx="3"/>${pn}</g>`;
+  b+=T(60,180,`T collettore ${f0(s.Tc)} °C`,{c:night?'#fff':'#16325c',s:12});
+  if(f==='stag')b+=[0,1,2].map(i=>`<path d="M${130+i*40},${150-i*20} q-8,-12 0,-24 q8,-12 0,-24" fill="none" stroke="#fff" stroke-width="4" opacity=".9"${L?' class="pulse"':''}/>`).join('')+T(120,72,'VAPORE',{c:'#d23c3c',s:13});
+  // isolamento + tubazioni
+  const flowOn=s.pump&&f!=='pompa'&&f!=='stag', par=f==='paras';
+  const mand='M241,120 L360,120 L360,372 L400,372', rit='M400,424 L200,424 L200,262 L62,209';
+  b+=`<path d="${mand}" fill="none" stroke="#3a3a3a" stroke-width="12" opacity=".5"/><path d="${rit}" fill="none" stroke="#3a3a3a" stroke-width="12" opacity=".5"/>`;
+  b+=LN(mand,tcol(s.Tc),flowOn||par,L,6,par?'rev slow':(f==='calc'?'slow':''))+LN(rit,f==='calc'?'#7e8ea3':'#2f7fd8',flowOn||par,L,f==='calc'?3:6,par?'rev slow':(f==='calc'?'slow':''));
+  if(f==='aria')for(let i=0;i<8;i++)b+=`<circle cx="${i<4?260+i*25:360}" cy="${i<4?120:160+(i-4)*45}" r="5" fill="#fff" stroke="#2f7fd8"${L?` class="pulse" style="animation-delay:${i*.2}s"`:''}/>`;
+  if(f==='calc')for(let i=0;i<9;i++)b+=`<circle cx="${210+i*20}" cy="${428}" r="3" fill="#d9d2b8"/>`;
+  // sfiato, sonda
+  b+=`<rect x="262" y="104" width="12" height="14" fill="#c9a227" stroke="#7a6111"/><circle cx="268" cy="100" r="4" fill="#999"/><circle cx="236" cy="114" r="5" fill="#ffcf5c" stroke="#333"/>`;
+  // ritegno mandata e ritorno
+  b+=`<circle cx="360" cy="230" r="9" fill="#ccc" stroke="#555"/><path d="M355,224 L360,236 L365,224z" fill="#d23c3c"/><circle cx="300" cy="424" r="9" fill="#ccc" stroke="#555"/><path d="M306,418 L294,424 L306,430z" fill="${par?'#999':'#d23c3c'}"/>`;
+  // disaeratore
+  b+=`<rect x="342" y="402" width="16" height="22" rx="4" fill="#c9a227" stroke="#7a6111"/>`;
+  // vaso
+  b+=`<path d="M200,395 L150,395 L150,404" fill="none" stroke="#2f7fd8" stroke-width="4"/><ellipse cx="150" cy="428" rx="20" ry="24" fill="#d23c3c"/>`;
+  b+=f==='vaso'?`<path d="M130,420 Q150,446 170,420" stroke="#111" stroke-width="2.5" fill="none"/>`:`<path d="M130,430 Q150,420 170,430" stroke="#111" stroke-width="2.5" fill="none"/>`;
+  // pompa, regolatore, sicurezza
+  b+=`<g transform="translate(200,345)"><circle r="16" fill="${f==='pompa'?'#d23c3c':'#2a5aa0'}" stroke="#fff" stroke-width="2"/><g${L&&flowOn?' class="spin"':''}><path d="M0,-10 L0,10 M-10,0 L10,0" stroke="#fff" stroke-width="3"/></g></g>`;
+  if(f==='pompa')b+=`<path d="M188,333 L212,357 M212,333 L188,357" stroke="#fff" stroke-width="4"/>`;
+  b+=`<rect x="190" y="288" width="20" height="28" rx="4" fill="#fff" stroke="#33405a"/><rect x="194" y="${f==='calc'||!flowOn?310:298}" width="12" height="4" fill="#2a5aa0"/>`;
+  b+=`<line x1="200" y1="275" x2="222" y2="275" stroke="#888" stroke-width="3"/><rect x="222" y="266" width="14" height="16" fill="#d23c3c"/><line x1="229" y1="282" x2="229" y2="292" stroke="#888" stroke-width="3"/><rect x="220" y="292" width="20" height="24" rx="3" fill="${f==='vsic'||f==='stag'?'#a7d36a':'#8dbb4e'}" stroke="#4e7a1c"/>`;
+  if(f==='vsic'||f==='stag')b+=[0,1].map(i=>`<circle cx="229" cy="${286+i*4}" r="2.4" fill="#2f7fd8"${L?` class="pulse" style="animation-delay:${i*.4}s"`:''}/>`).join('');
+  b+=`<circle cx="250" cy="300" r="11" fill="#fff" stroke="#33405a"/><line x1="250" y1="300" x2="${f==='stag'||f==='vaso'?258:244}" y2="${f==='stag'||f==='vaso'?292:292}" stroke="#d23c3c" stroke-width="2"/>`;
+  // centralina
+  b+=`<rect x="274" y="160" width="56" height="34" rx="5" fill="#33405a"/><rect x="279" y="165" width="46" height="15" fill="${f==='sonda'?'#f4b4b4':'#9fe0b0'}"/>`+T(302,177,f==='sonda'?'S1 ---':`ΔT ${f0(s.Tc-s.Tb)}`,{a:'middle',s:10,c:'#1d2433'});
+  b+=`<path d="M274,170 Q250,140 238,118" stroke="#9aa" stroke-dasharray="3 3" fill="none"/><path d="M330,186 Q392,300 406,410" stroke="#9aa" stroke-dasharray="3 3" fill="none"/>`;
+  // serbatoio
+  b+=`<rect x="400" y="270" width="100" height="162" rx="30" fill="url(#${id})" stroke="${f==='caldo'?'#d23c3c':'#33405a'}" stroke-width="3"/><rect x="424" y="290" width="52" height="70" rx="18" fill="${tcol(s.Tt-1)}" stroke="#fff" stroke-width="2"/>`+T(450,330,'ACS',{a:'middle',c:'#fff'});
+  b+=LN('M400,372 L486,372 L414,385 L486,398 L414,411 L486,424 L400,424','#e0482f',flowOn||par,L,3);
+  b+=T(504,284,f0(s.Tt)+' °C',{s:12,c:f==='caldo'?'#d23c3c':'#16325c'})+T(504,430,f0(s.Tb)+' °C',{s:12});
+  if(f==='caldo')b+=`<rect x="444" y="258" width="12" height="12" fill="#999"/>`+[0,1,2].map(i=>`<circle cx="${462+i*5}" cy="${262+i*6}" r="2.5" fill="#e0482f"${L?' class="pulse"':''}/>`).join('');
+  // caldaia
+  b+=`<rect x="548" y="360" width="46" height="54" rx="5" fill="#fff" stroke="#33405a" stroke-width="2"/><path d="M571,406 q-10,-10 0,-24 q10,14 0,24z" fill="#f5a524" opacity="${s.boil?1:.15}"/>`+T(546,428,'caldaia');
+  b+=LN('M582,360 L582,288 L500,288','#e0482f',s.boil,L,4)+LN('M500,304 L566,304 L566,360','#f08a3c',s.boil,L,4);
+  // ACS e miscelatore
+  b+=LN('M450,290 L450,258 L540,258',tcol(s.Tt),s.acs,L,4)+`<circle cx="548" cy="258" r="8" fill="#bbb" stroke="#555"/><path d="M556,258 L590,258 L590,232" stroke="#f08a3c" stroke-width="4" fill="none"/><path d="M580,232 h20" stroke="#555" stroke-width="4"/>`+T(600,236,'45 °C');
+  b+=LN('M548,286 L548,266','#2f7fd8',s.acs,L,3);
+  // radiante
+  let rd='M500,334 L640,334 L640,446';for(let i=0;i<6;i++){const x=626-i*18;rd+=` L${x},446 L${x},428 L${x-9},428 L${x-9},446`}rd+=' L516,446 L516,418 L500,418';
+  b+=LN(rd,'#f08a3c',s.heat,L,3)+T(612,326,'radiante',{a:'end'});
+  // evidenziazione
+  if(hi&&BADGE[hi]){const [x,y]=BADGE[hi];b+=`<circle cx="${x}" cy="${y}" r="26" fill="none" stroke="#ffcf5c" stroke-width="5"${L?' class="pulse"':''}/>`}
+  if(nums)COMPS.forEach((c,i)=>{const [x,y]=BADGE[c.k];b+=`<g class="clk" data-comp="${c.k}"><circle cx="${x}" cy="${y}" r="10" fill="${hi===c.k?'#f5a524':'#16325c'}" stroke="#fff" stroke-width="1.5"/>`+T(x,y+4,i+1,{a:'middle',c:'#fff',s:10})+'</g>'});
+  if(title)b+=`<rect x="8" y="8" width="${Math.min(520,title.length*7+20)}" height="24" rx="6" fill="#d23c3c"/>`+T(18,25,title,{c:'#fff',s:12});
+  return SV(760,480,b,null);
+}
+// ---------- regolazione: centralina differenziale ----------
+function figCtrl({Tc,Tb,on,dton=7,doff=3,tmax=85,L=false}){
+  const dT=Tc-Tb;let b=`<rect width="600" height="270" fill="#eef4fb"/>`+sunG(46,40,14,L);
+  b+=`<g transform="translate(40,150) rotate(-30)">${panelRect(0,-40,150,36,Tc>90?tcol(Tc):'#1d3d73')}</g>`+T(40,190,`S1 collettore: ${f0(Tc)} °C`,{s:12,c:'#e0482f'});
+  b+=`<circle cx="166" cy="68" r="6" fill="#ffcf5c" stroke="#333"/>`;
+  b+=`<rect x="420" y="90" width="90" height="150" rx="28" fill="${tcol(Tb+10)}" stroke="#33405a" stroke-width="3"/><circle cx="430" cy="222" r="6" fill="#ffcf5c" stroke="#333"/>`+T(412,262,`S2 serbatoio: ${f0(Tb)} °C`,{s:12,c:'#2f7fd8'});
+  b+=LN('M170,70 L380,70 L380,180 L420,180','#e0482f',on,L,5)+LN('M420,226 L300,226 L120,226 L60,150','#2f7fd8',on,L,5);
+  b+=`<g transform="translate(300,226)"><circle r="17" fill="#2a5aa0" stroke="#fff" stroke-width="2"/><g${L&&on?' class="spin"':''}><path d="M0,-11 L0,11 M-11,0 L11,0" stroke="#fff" stroke-width="3"/></g></g>`+T(300,258,on?'POMPA ON':'POMPA OFF',{a:'middle',c:on?'#1f9d63':'#d23c3c'});
+  b+=`<rect x="230" y="104" width="130" height="70" rx="8" fill="#33405a"/><rect x="238" y="112" width="114" height="34" fill="#9fe0b0"/>`+T(295,127,`ΔT = ${f0(dT)} K`,{a:'middle',c:'#1d2433',s:13})+T(295,141,Tb>=tmax?'T MAX raggiunta':on?`> ${doff} K: resta ON`:`< ${dton} K: resta OFF`,{a:'middle',c:'#1d2433',s:9})+T(295,164,'centralina',{a:'middle',c:'#fff'});
+  b+=`<path d="M230,120 Q190,90 172,72" stroke="#9aa" stroke-dasharray="3 3" fill="none"/><path d="M360,160 Q420,200 428,218" stroke="#9aa" stroke-dasharray="3 3" fill="none"/>`;
+  return SV(600,270,b,null);
+}
+// ---------- regolazione: doppio bollitore con deviatrice ----------
+function figDev({Ts,sog=45,L=false}){
+  const dir=Ts>=sog;let b=`<rect width="660" height="310" fill="#eef4fb"/>`+sunG(40,38,13,L);
+  b+=`<g transform="translate(20,140) rotate(-25)">${panelRect(0,-36,110,32)}</g>`;
+  b+=`<rect x="150" y="120" width="90" height="150" rx="28" fill="${tcol(Ts)}" stroke="#33405a" stroke-width="3"/>`+T(195,290,'serbatoio solare',{a:'middle'})+T(195,200,f0(Ts)+' °C',{a:'middle',c:'#fff',s:14});
+  b+=coil(225,255,'#e0482f',1,L,152,232).replace(/M50,/,'M80,');
+  b+=LN('M195,120 L195,70 L300,70',tcol(Ts),1,L,5);
+  b+=`<circle cx="315" cy="70" r="16" fill="#fff" stroke="#33405a" stroke-width="2"/><path d="M305,62 L315,70 L305,78z M325,62 L315,70 L325,78z" fill="#33405a"/>`+T(315,44,'valvola deviatrice',{a:'middle'})+T(315,104,`termostato ${sog} °C`,{a:'middle',w:'normal'});
+  b+=LN('M331,70 L560,70',tcol(Ts),dir,L,5)+T(420,62,'A: diretta all’utenza',{c:dir?'#1f9d63':'#999'});
+  b+=LN('M315,86 L315,160 L410,160',tcol(Ts),!dir,L,5)+T(330,150,'B: integrazione',{c:!dir?'#d98a0b':'#999'});
+  b+=`<rect x="410" y="130" width="80" height="130" rx="26" fill="${tcol(!dir?55:40)}" stroke="#33405a" stroke-width="3"/>`+T(450,280,'bollitore caldaia',{a:'middle'});
+  b+=`<rect x="510" y="200" width="44" height="54" rx="5" fill="#fff" stroke="#33405a" stroke-width="2"/><path d="M532,246 q-10,-10 0,-24 q10,14 0,24z" fill="#f5a524" opacity="${!dir?1:.15}"/>`+LN('M510,214 L490,214','#e0482f',!dir,L,4);
+  b+=LN('M450,130 L450,100 L560,100 L560,70',tcol(55),!dir,L,5);
+  b+=`<circle cx="580" cy="70" r="9" fill="#bbb" stroke="#555"/><path d="M589,70 L630,70 L630,46" stroke="#f08a3c" stroke-width="4" fill="none"/><path d="M620,46 h20" stroke="#555" stroke-width="4"/>`+T(560,100,'miscelatore',{w:'normal'})+T(600,40,'utenza');
+  return SV(660,310,b,null);
+}
+// ---------- diagramma di Gantt (stile Excel) ----------
+function ganttRows(acts){let s=0;return acts.map(a=>{const o={...a,s,e:s+a.d};s+=a.d;return o})}
+function figGantt(acts,{L=false,excel=false,title='PROGRAMMAZIONE CONTROLLI PERIODICI - DIAGRAMMA DI GANTT'}={}){
+  const R=ganttRows(acts),tot=R.length?R[R.length-1].e:0,lx=250,W=780,rh=36,top=50,H=top+R.length*rh+56,cw=W-lx-30;
+  const step=tot<=200?10:tot<=480?20:tot<=1000?60:120,max=Math.ceil(tot/step)*step||step,X=t=>lx+t/max*cw;
+  let b=T(W/2,24,title,{a:'middle',s:14,c:'#16325c'});
+  b+=`<rect x="${lx}" y="${top}" width="${cw}" height="${R.length*rh}" fill="#fafafa" stroke="#ccc"/>`;
+  for(let t=0;t<=max;t+=step)b+=`<line x1="${X(t)}" x2="${X(t)}" y1="${top}" y2="${top+R.length*rh}" stroke="#ddd"/>`+T(X(t),top+R.length*rh+16,t,{a:'middle',w:'normal',s:10});
+  b+=T(lx+cw/2,H-12,'Tempo di intervento (minuti)',{a:'middle'});
+  R.forEach((r,i)=>{const row=excel?R.length-1-i:i,y=top+row*rh;
+    b+=T(lx-10,y+rh/2+4,r.n,{a:'end'});
+    b+=`<rect x="${X(r.s)}" y="${y+7}" width="${Math.max(2,X(r.e)-X(r.s))}" height="${rh-14}" fill="#b5833f" stroke="#8a5f28"${L?` class="grow" style="animation-delay:${i*.25}s"`:''}/>`;
+    if(X(r.e)-X(r.s)>34)b+=T((X(r.s)+X(r.e))/2,y+rh/2+4,r.d+' min',{a:'middle',c:'#fff',s:10});else b+=T(X(r.e)+4,y+rh/2+4,r.d+'',{s:10})});
+  return SV(W,H,b,'#ffffff');
+}
+// ===================== TRACCIA 1: DIMENSIONAMENTO =====================
+function rowFactor(a){if(a<=30)return 2.6;if(a<=45)return lerp(2.6,3.2,(a-30)/15);return lerp(3.2,3.5,Math.min(1,(a-45)/15))}
+function layout(D){
+  const flat=S.roof==='piano',N=D.N,rows=clamp(S.rows,1,N),per=Math.ceil(N/rows),V=S.orient==='V';
+  const pw=V?PANEL.larg:PANEL.lungh,ph=V?PANEL.lungh:PANEL.larg,pitchX=V?PANEL.pV:PANEL.pO;
+  let depth=ph,dRow=0,hRow=0,rowPitch;
+  if(flat){depth=ph*Math.cos(rad(S.flatTilt));hRow=ph*Math.sin(rad(S.flatTilt));dRow=hRow*rowFactor(S.flatTilt);rowPitch=depth+dRow}else rowPitch=ph+0.3;
+  const m=S.margin,blockW=(per-1)*pitchX+pw,blockH=(rows-1)*rowPitch+depth,freeX=S.W-2*m-blockW,freeY=S.L-2*m-blockH;
+  const x0=m+Math.max(0,freeX)*S.offX,y0=m+Math.max(0,freeY)*S.offY,panels=[];let k=0;
+  for(let r=0;r<rows;r++){const n=Math.min(per,N-k);for(let c=0;c<n;c++){const x=x0+c*pitchX,y=y0+r*rowPitch,p={x,y,w:pw,h:depth,ok:true,why:''};
+    if(x<m-1e-6||x+pw>S.W-m+1e-6||y<m-1e-6||y+depth>S.L-m+1e-6){p.ok=false;p.why='fuori dalla fascia utile'}
+    for(const o of S.obs)if(x<o.x+o.w+.3&&x+pw>o.x-.3&&y<o.y+o.h+.3&&y+depth>o.y-.3){p.ok=false;p.why='interferisce con il '+o.t}
+    panels.push(p);k++}}
+  return {panels,rows,per,blockW,blockH,freeX,depth,rowPitch,dRow,hRow,bad:panels.filter(p=>!p.ok).length,cap:Math.max(0,Math.floor((S.W-2*m-pw)/pitchX)+1)*Math.max(0,Math.floor((S.L-2*m-depth)/rowPitch)+1)};
+}
+function compute1(){
+  const D={},L=LOC[S.loc];D.L=L;const z=ZONE[L.zona].small;D.zr=z;D.coef=clamp(S.coef,z[0],z[1]);
+  D.Sreq=D.coef*S.A/10;D.Ap=S.aref==='lorda'?2.3:PANEL.Aap;D.Nraw=D.Sreq/D.Ap;D.N=Math.max(1,Math.ceil(D.Nraw-1e-9));D.S=D.N*D.Ap;D.cov=D.S/(S.A/10);
+  D.tilt=S.roof==='piano'?S.flatTilt:S.tilt;D.oLoss=orientLoss(S.az);D.noonW=90-L.lat-23.45;D.noonS=90-L.lat+23.45;D.ideal=L.lat+10;
+  D.layout=layout(D);D.maxLine=S.orient==='V'?PANEL.maxV:PANEL.maxO;D.lines=Math.max(D.layout.rows,Math.ceil(D.N/D.maxLine));
+  D.G=S.gs*D.S;D.Q=400*D.S;D.QkW=D.Q/860;D.Gline=D.G/D.lines;
+  D.pipes=PIPES.map(p=>({p,r:rFromG(p,D.G),v:vel(D.G,p.di)}));D.pipe=D.pipes.find(o=>o.r!=null&&o.r<=S.rmax)||D.pipes[D.pipes.length-1];
+  D.Ltot=2*S.Lone;D.Hdist=D.pipe.r*D.Ltot;D.Hloc=D.Hdist*0.3;
+  D.im=INS_MAT[S.insMat];D.ins=insThick(S.lam,D.pipe.p.de);D.insK=INS_POS[S.insPos].k;D.insReq=D.ins.s*D.insK;D.insComm=INS_COMM.find(v=>v>=D.insReq-0.01)||80;
+  D.Dext=D.pipe.p.de+2*D.insComm;D.Sext=Math.PI*D.Dext/1000;
+  D.Tprot=L.tp-10;D.gly=GLYCOL.find(g=>g.t<=D.Tprot)||GLYCOL[2];
+  D.Vcalc=S.kV*D.S;D.Vtank=TANKS.find(v=>v>=D.Vcalc-1)||2000;D.Ssc=S.scPct/100*D.S;D.ACS=S.pers*50;
+  D.VP=D.N*PANEL.vol;D.Vpipe=D.Ltot*Math.PI*(D.pipe.p.di/1000)**2/4*1000;D.Vsc=Math.round(D.Ssc/0.106*0.57*10)/10;D.VC=D.VP+D.Vpipe+D.Vsc+3;
+  D.Hst=S.hg+S.L*Math.sin(rad(S.roof==='falda'?S.tilt:0))+(S.roof==='piano'?1.5:0);D.PI=Math.round((D.Hst/10.2+0.5)*10)/10;D.PF=S.Pvs-0.5;
+  D.VU=(D.VC*0.07+D.VP)*1.1;D.VN=D.VU*(D.PF+1)/(D.PF-D.PI);D.vaso=VASI.find(v=>v>=D.VN)||100;
+  D.Hcoll=collLoss(D.Gline)*10.2*(S.orient==='O'?Math.ceil(D.N/D.lines):1);D.Hpipe=(D.Hdist+D.Hloc)*1.25;D.Hsys=D.Hpipe+D.Hcoll+S.Hsc+S.Hgr;D.k=D.Hsys/1000/(D.G/1000)**2;
+  return D;
+}
+const KIT_V={1:'A1 D1 H1',2:'B1 D1 H2',3:'C1 E1 H3',4:'B2 D2 F1 H4',5:'B1 C1 D1 E1 F1 H5',6:'C2 E2 F1 H6'},KIT_O={1:'A1 D1 H1',2:'B1 E1 H2 I1',3:'A1 B1 D1 E1 F1 H3 I2',4:'B2 E2 F1 H4 I3',5:'A1 B2 D1 E2 F2 H5 I4',6:'B3 E3 F2 H6 I5'};
+const PIPE_Q=[['zinc','Acciaio zincato','come scritto nella traccia'],['nero','Acciaio non zincato','tubo delle Tab. 7A e 9'],['rame','Rame','brasatura forte'],['multi','Multistrato / plastica','']];
+const PIPE_FB={zinc:['wrong','Oltre 60 °C lo zinco si stacca (dezincatura), soprattutto con il glicole: Caleffi pag. 24 lo esclude. Nella relazione si usa acciaio non zincato.'],nero:['right','Giusto: è il tubo delle tabelle 7A (perdite di carico) e 9 (superficie esterna).'],rame:['right','Ammesso con brasatura forte, ma servono le tabelle del rame.'],multi:['wrong','Vietato: in stagnazione il circuito supera 180 °C.']};
+
+function pipeTable(D){
+  const ch=D.pipe.p.de,pick=PIPE_R.findIndex(x=>x>=D.pipe.r-1e-9);
+  return `<div class="scroll"><table class="t"><tr><th>r mm/m</th>${PIPES.slice(0,8).map(p=>`<th style="${p.de===ch?'background:#2a5aa0;color:#fff':''}">De ${f1(p.de)}</th>`).join('')}</tr>${PIPE_R.slice(0,13).map((r,i)=>`<tr><th>${r}</th>${PIPES.slice(0,8).map(p=>{const g=p.g[i];const c=p.de===ch&&i===pick?'pk':(r>=10&&r<=S.rmax&&g>=D.G)?'hl':'';return `<td class="${c}">${g.toLocaleString('it-IT')}</td>`}).join('')}</tr>`).join('')}</table></div>`;
+}
+function insTable(D){const I=D.ins;return `<div class="scroll"><table class="t"><tr><th>λ</th>${INS_C.map((c,j)=>`<th style="${j===I.c?'background:#2a5aa0;color:#fff':''}">De ${c}</th>`).join('')}</tr>${INS_L.map((l,i)=>`<tr><th>${f3(l)}</th>${INS_T[i].map((v,j)=>`<td class="${(i===I.i0||i===I.i1)&&j===I.c?'pk':''}">${v}</td>`).join('')}</tr>`).join('')}</table></div>`}
+
+const EX1={id:'dim',title:'Traccia 1: dimensionamento impianto solare combinato',short:'Dimensionamento',compute:compute1,steps:[
+{t:'Traccia e dati',sub:'Il sito, la casa e il tetto.',
+ ctrl:D=>`<div class="note blue"><b>Traccia.</b> Villetta unifamiliare di 180 m² in provincia di Agrigento: impianto a pannelli solari per servizio combinato idrosanitario e riscaldamento a pannelli radianti. Dimensionare l’impianto e la disposizione sul tetto esposto a Sud, a falda inclinata di 35°.</div>
+  <div class="g2"><div><div class="ctrl"><label>Località</label><select data-k="loc" data-full="1">${Object.entries(LOC).map(([k,l])=>`<option value="${k}" ${S.loc===k?'selected':''}>${l.n} (Italia ${l.zona})</option>`).join('')}</select></div>
+  ${num('A','Superficie abitata (m²)',30,1000,5)}${num('pers','Occupanti',1,20,1)}</div>
+  <div>${opt('roof',[['falda','Tetto a falda'],['piano','Tetto piano']])}${S.roof==='falda'?rng('tilt','Inclinazione falda',10,60,1,'°'):rng('flatTilt','Inclinazione cavalletti',20,65,5,'°')}${rng('az','Orientamento (0 = Sud)',-90,90,5,'°')}</div></div>`,
+ out:D=>`<div class="g2"><div>${figBox(figHouse({tilt:D.tilt,lat:D.L.lat,flat:S.roof==='piano',L:true}),'Sezione Sud-Nord: altezza del sole a mezzogiorno in inverno e in estate')}</div><div>
+  ${calc([`Zona per la tabella Caleffi: Italia ${D.L.zona}`,`T esterna di progetto: ${D.L.tp} °C`,`Sole a mezzogiorno 21/12: 90 − ${f1(D.L.lat)} − 23,45 = ${f1(D.noonW)}°`,`Inclinazione ideale per un combinato: lat + 10 = ${f0(D.ideal)}°`])}
+  ${D.tilt>=35?chip('ok','inclinazione ≥ 35°: adatta al carico invernale'):D.tilt>=15?chip('warn','inclinazione da impianto estivo'):chip('bad','sotto i 15° minimi')} ${Math.abs(S.az)<=30?chip('ok','orientamento entro ±30° da Sud'):chip('warn','orientamento sfavorevole')}
+  ${figBox(figCompass(S.az,D.oLoss),'')}</div></div>`},
+{t:'Superficie captante e numero di pannelli',sub:'Tabella Caleffi pag. 19, impianti combinati di piccole dimensioni; pannello Riello RPS 25/4.',
+ ctrl:D=>`<div class="scroll"><table class="t"><tr><th>Zona</th><th>m² di pannello ogni 10 m² abitati</th></tr>${Object.entries(ZONE).map(([z,v])=>`<tr><th>Italia ${z}</th><td class="${z===D.L.zona?'hl':''}">${f2(v.small[1])} ÷ ${f2(v.small[0])}</td></tr>`).join('')}</table></div>
+  ${rngX('coef','Coefficiente scelto',D.zr[0],D.zr[1],0.01,'m²/10 m²',2)}
+  ${opt('aref',[['lorda','Area pannello 2,3 m²','come nella traccia'],['ap','Area di apertura 2,152 m²','più rigorosa']])}`,
+ out:D=>`${calc([`S = coefficiente × superficie / 10 = ${f2(D.coef)} × ${f0(S.A)} / 10`],`S = ${f2(D.Sreq)} m²`)}
+  ${calc([`N = S / A pannello = ${f2(D.Sreq)} / ${f3(D.Ap)} = ${f2(D.Nraw)} → arrotondo per eccesso`],`N = ${D.N} pannelli · superficie installata ${f2(D.S)} m²`)}
+  ${figBox(figTiles(D.Sreq,D.N,D.Ap),'Dalla superficie necessaria al numero di collettori')}
+  <div class="g2"><div>${figBox(figPanelType('piano',true),'Collettore piano vetrato RPS 25/4: strati e funzionamento')}</div>
+  <div class="kv"><b>Dimensioni</b><span>2004 × 1195 × 85 mm, 44 kg</span><b>Superfici</b><span>lorda 2,301 · apertura 2,152 m²</span><b>Contenuto</b><span>1,6 l</span><b>Rendimento</b><span>η0 0,802 · a1 4,28 · a2 0,0064</span><b>Stagnazione</b><span>197 °C</span><b>In linea</b><span>max 10 verticali, 6 orizzontali</span></div></div>`},
+{t:'Disposizione sul tetto',sub:'Ingombri, distanze dai bordi, ostacoli, staffaggio e collegamento.',
+ ctrl:D=>`<div class="g2"><div>${opt('orient',[['V','Verticali','1195 mm, max 10 in linea'],['O','Orizzontali','2004 mm, max 6 in linea']])}</div><div>${rng('rows','Numero di file',1,Math.min(3,D.N),1,'')}${rng('margin','Fascia libera dai bordi',0.3,1.5,0.1,'m',1)}</div></div>`,
+ out:D=>{const Ly=D.layout,V=S.orient==='V';return `${figBox(figRoof(D),'Pianta della falda con i collettori, la fascia di rispetto e il camino')}
+  ${Ly.bad?chip('bad',`${Ly.bad} pannelli non stanno`):chip('ok','tutti i pannelli rientrano nella zona utile')} ${chip('ok',`campo ${f2(Ly.blockW)} × ${f2(Ly.blockH)} m`)}
+  ${calc([`Kit staffaggio Riello per ${Ly.per} collettori ${V?'verticali':'orizzontali'}: ${(V?KIT_V:KIT_O)[Math.min(6,Ly.per)]}`,`Lunghezza binari L = ${V?120:210} × ${Ly.per} = ${(V?120:210)*Ly.per} cm`])}
+  ${figBox(figConn(D),'Collegamento idraulico dei collettori')}`}},
+{t:'Portata e tubazioni',sub:'Metodo delle perdite di carico lineari costanti (Caleffi pag. 24, Tab. 7A).',
+ ctrl:D=>`<h3>Che tubo usi?</h3><div class="opts">${PIPE_Q.map(([k,t,s])=>`<button class="opt ${S.pipeMat===k?PIPE_FB[k][0]:''}" data-set="pipeMat" data-val="${k}">${t}${s?`<small>${s}</small>`:''}</button>`).join('')}</div>
+  ${S.pipeMat?`<div class="note ${PIPE_FB[S.pipeMat][0]==='right'?'green':'red'}">${PIPE_FB[S.pipeMat][1]}</div>`:''}
+  <div class="g2"><div>${rng('rmax','Perdita lineare massima r',10,20,1,'mm c.a./m')}</div><div>${rng('Lone','Lunghezza tetto → centrale termica',3,40,1,'m')}</div></div>`,
+ out:D=>`${calc([`Portata specifica = q / Δt = 400 / 10 = 40 l/(h·m²)`,`G = 40 × ${f2(D.S)} m²`],`G = ${f0(D.G)} l/h · potenza ${f2(D.QkW)} kW`)}
+  ${pipeTable(D)}
+  ${calc([`Colonna De ${f1(D.pipe.p.de)}: con ${f0(D.G)} l/h interpolo r ≈ ${f2(D.pipe.r)} mm c.a./m`,`Perdite distribuite = ${f2(D.pipe.r)} × ${D.Ltot} m = ${f0(D.Hdist)} mm c.a.`],`Tubo acciaio De ${f1(D.pipe.p.de)} mm (Di ${f1(D.pipe.p.di)})`)}
+  ${figBox(figPipe(D,true),'Sezione del tubo isolato e moto del fluido')}`},
+{t:'Isolamento delle tubazioni',sub:'DPR 412/93 all. B e Tab. 9 (superficie esterna del tubo isolato).',
+ ctrl:D=>`${opt('insMat',Object.entries(INS_MAT).map(([k,m])=>[k,m.n,`λ ${f3(m.l)} · max ${m.tmax} °C`]))}
+  <div class="ctrl"><label>Posizione del tratto</label><select data-k="insPos" data-full="1">${Object.entries(INS_POS).map(([k,p])=>`<option value="${k}" ${S.insPos===k?'selected':''}>${p.n}</option>`).join('')}</select></div>`,
+ out:D=>`${insTable(D)}${calc([`De ${f1(D.pipe.p.de)} mm → colonna “${INS_C[D.ins.c]}”, λ = ${f3(S.lam)}`,`Spessore da tabella ${f1(D.ins.s)} mm × ${D.insK} (posizione) = ${f1(D.insReq)} mm`,`S est = π × (${f1(D.pipe.p.de)} + 2 × ${D.insComm}) / 1000 = ${f3(D.Sext)} m²/m`],`Isolante ${D.insComm} mm · ${f3(D.Sext)} m² per metro`)}
+  ${D.im.tmax<150?`<div class="note red">${D.im.n} regge circa ${D.im.tmax} °C: vicino ai collettori (stagnazione fino a 197 °C) serve EPDM alta temperatura.</div>`:''}
+  <div class="note">All’esterno l’isolante va protetto da acqua, raggi UV e animali con lamiera zincata o alluminio.</div>`},
+{t:'Antigelo e accumulo',sub:'Glicole fino a 10 °C sotto la T di progetto; V = (50 ÷ 60) × S; scambiatore 35 ÷ 40% di S.',
+ ctrl:D=>`<div class="g2"><div>${rng('kV','Litri per m² di pannello',50,60,1,'l/m²')}</div><div>${rng('scPct','Scambiatore interno',35,40,1,'% di S')}</div></div>`,
+ out:D=>`<div class="g2"><div>${calc([`Protezione = ${D.L.tp} − 10 = ${D.Tprot} °C`],`Glicole propilenico ${D.gly.p}% (fino a ${D.gly.t} °C)`)}${figBox(figThermo(D),'Scelta della concentrazione di glicole')}</div>
+  <div>${calc([`V = ${S.kV} × ${f2(D.S)} = ${f0(D.Vcalc)} l`,`Scambiatore = ${S.scPct}% × ${f2(D.S)} = ${f2(D.Ssc)} m²`],`Serbatoio tank in tank da ${D.Vtank} l`)}${figBox(figTank('tit',{},true),'Serbatoio combinato tank in tank')}</div></div>`},
+{t:'Vaso d’espansione e circolatore',sub:'VU = (VC · e + VP) · k; VN = VU · (PF + 1) / (PF − PI). Prevalenza per vincere tutte le resistenze.',
+ ctrl:D=>`<div class="g2"><div>${num('Pvs','Taratura valvola di sicurezza (bar)',3,10,0.5)}</div><div>${num('Hsc','Perdita scambiatore + gruppo (mm c.a.)',0,3000,50)}</div></div>`,
+ out:D=>`<div class="g2"><div>${calc([`VP = ${D.N} × 1,6 = ${f1(D.VP)} l · VC = ${f1(D.VC)} l`,`VU = (${f1(D.VC)} × 0,07 + ${f1(D.VP)}) × 1,1 = ${f1(D.VU)} l`,`PI = ${f1(D.Hst)}/10,2 + 0,5 = ${f1(D.PI)} bar · PF = ${f1(D.PF)} bar`,`VN = ${f1(D.VU)} × ${f1(D.PF+1)} / ${f1(D.PF-D.PI)} = ${f1(D.VN)} l`],`Vaso da ${D.vaso} l`)}${figBox(figVaso(D,130,true),'Il vaso accoglie dilatazione e vapore in stagnazione')}</div>
+  <div>${calc([`Tubi: (${f0(D.Hdist)} + ${f0(D.Hloc)}) × 1,25 (glicole) = ${f0(D.Hpipe)} mm`,`Collettori ${f0(D.Hcoll)} + scambiatore e gruppo ${f0(S.Hsc+S.Hgr)} mm`],`${f2(D.G/1000)} m³/h a ${f2(D.Hsys/1000)} m c.a.`)}${figBox(figPump(D),'Scelta del circolatore')}</div></div>`},
+{t:'Schema completo e funzionamento',sub:'Tocca i numeri per vedere ogni componente; cambia la situazione per vedere cosa si accende.',
+ ctrl:D=>`${opt('scen1',[['sole','Sole forte'],['debole','Sole debole'],['notte','Notte']])}`,
+ out:D=>{const st=SCEN[S.scen1];return `${figBox(figSchema({L:true,st,hi:S.comp,N:D.N}),'Schema dell’impianto combinato')}${compCard()}`}},
+{t:'Relazione Word',sub:'Compila l’intestazione e scarica la relazione completa con tutte le figure.',report:true}
+]};
+const SCEN={sole:{sun:1,pump:1,boil:0,heat:1,acs:1,Tc:62,Tt:58,Tb:40},debole:{sun:1,pump:1,boil:1,heat:1,acs:1,Tc:42,Tt:47,Tb:33},notte:{sun:0,night:1,pump:0,boil:1,heat:1,acs:0,Tc:8,Tt:48,Tb:36}};
+
+async function report1(prog){
+  const D=compute1(),Ly=D.layout,doc=new Doc('Relazione tecnica: impianto solare termico combinato');
+  doc.cover('Relazione tecnica','Dimensionamento di un impianto solare termico combinato per acqua calda sanitaria e riscaldamento a pannelli radianti');
+  doc.table([['Dato','Valore'],['Studente',S.studente||'-'],['Classe',S.classe||'-'],['Istituto',S.scuola||'-'],['Data',S.data||'-'],['Località',`${D.L.n} (Italia ${D.L.zona})`],['Edificio',`villetta unifamiliare, ${f0(S.A)} m²`]],{widths:[1,2]});
+  doc.fig(figHouse({tilt:D.tilt,lat:D.L.lat,flat:S.roof==='piano'}),'Sezione dell’edificio con i collettori e le altezze del sole a mezzogiorno',{width:14}).pb();
+  doc.h1('1. Dati di progetto').p(`L’edificio è una villetta unifamiliare di ${f0(S.A)} m² a ${D.L.n}, latitudine ${f1(D.L.lat)}° N, temperatura esterna di progetto ${D.L.tp} °C. L’impianto solare deve servire sia la produzione di acqua calda sanitaria sia il riscaldamento con pannelli radianti a bassa temperatura (30-35 °C), condizione che permette ai collettori di lavorare con buon rendimento anche d’inverno.`);
+  doc.p(S.roof==='falda'?`I collettori si montano complanari alla falda esposta a Sud (orientamento ${S.az}°), inclinata di ${S.tilt}°. L’inclinazione ideale per un impianto combinato sarebbe latitudine + 10° = ${f0(D.ideal)}°; mantenendo quella del tetto la perdita è modesta e si riducono carichi di vento e costi. La perdita dovuta all’orientamento è circa ${f1(D.oLoss)}%.`:`I collettori si montano su cavalletti inclinati di ${S.flatTilt}° sul tetto piano.`);
+  doc.calc([`Altezza del sole il 21 dicembre: 90 − ${f1(D.L.lat)} − 23,45 = ${f1(D.noonW)}°`,`Altezza del sole il 21 giugno: 90 − ${f1(D.L.lat)} + 23,45 = ${f1(D.noonS)}°`]);
+  doc.h1('2. Superficie captante e numero di collettori');
+  doc.p(`Per impianti combinati in edifici abitativi ben isolati con riscaldamento a bassa temperatura, la tabella Caleffi (Idraulica 29, pag. 19) indica per l’Italia ${D.L.zona} da ${f2(D.zr[1])} a ${f2(D.zr[0])} m² di pannello ogni 10 m² di superficie abitata. Si assume ${f2(D.coef)}.`);
+  doc.calc([`S = ${f2(D.coef)} × ${f0(S.A)} / 10 = ${f2(D.Sreq)} m²`,`N = S / A pannello = ${f2(D.Sreq)} / ${f3(D.Ap)} = ${f2(D.Nraw)} → ${D.N} collettori`,`Superficie installata = ${D.N} × ${f3(D.Ap)} = ${f2(D.S)} m²`]);
+  doc.fig(figTiles(D.Sreq,D.N,D.Ap),'Dalla superficie necessaria al numero di collettori');
+  doc.h2('Il collettore Riello RPS 25/4').p('Collettore piano vetrato con assorbitore in alluminio a finitura selettiva (assorbimento 95%, emissività 4%), vetro solare da 3,2 mm, isolamento in lana minerale da 40 mm e telaio in alluminio. Si installa sia in verticale sia in orizzontale.');
+  doc.table([['Caratteristica','Valore'],['Superficie lorda / apertura','2,301 / 2,152 m²'],['Dimensioni e peso','2004 × 1195 × 85 mm, 44 kg'],['Contenuto di liquido','1,6 l'],['Rendimento η0, a1, a2','0,802 · 4,28 · 0,0064'],['Temperatura di stagnazione','197 °C'],['Pressione massima','10 bar'],['Collettori in linea','10 verticali / 6 orizzontali']],{widths:[2,2],cap:'Dati tecnici del collettore'});
+  doc.fig(figPanelType('piano'),'Struttura del collettore piano vetrato',{width:13});
+  doc.h1('3. Disposizione sul tetto');
+  doc.p(`I ${D.N} collettori sono montati ${S.orient==='V'?'in verticale':'in orizzontale'} su ${Ly.rows} fila/e da ${Ly.per}. Il campo occupa ${f2(Ly.blockW)} × ${f2(Ly.blockH)} m e lascia una fascia libera di ${f1(S.margin)} m dai bordi della falda, lontano dal camino. ${Ly.bad?'Attenzione: alcuni pannelli non rientrano nella zona utile e la disposizione va corretta.':'Tutti i collettori rientrano nella zona utile.'}`);
+  doc.p(`Staffaggio Riello su tetto a falda con vite prigioniera, kit per ${Ly.per} collettori: ${(S.orient==='V'?KIT_V:KIT_O)[Math.min(6,Ly.per)]} (A-B-C barre di supporto, D-E fissaggi al tetto, F giunti, H bloccaggi, I raccordi).`);
+  doc.fig(figRoof(D),'Pianta della falda con la posizione dei collettori');
+  doc.p(S.orient==='V'?'In verticale i collettori, con assorbitore ad arpa, sono attraversati in parallelo. La mandata parte dal lato della sonda dell’ultimo collettore, nella parte alta.':'In orizzontale i collettori sono attraversati in serie, al massimo 6 per linea.');
+  doc.fig(figConn(D),'Collegamento idraulico dei collettori',{width:13});
+  doc.h1('4. Portata e tubazioni');
+  doc.p('La portata del circuito solare si ricava dalla potenza specifica di progetto q = 400 kcal/(h·m²) e dal salto termico Δt = 10 °C.');
+  doc.calc([`Portata specifica = 400 / 10 = 40 l/(h·m²)`,`G = ${S.gs} × ${f2(D.S)} = ${f0(D.G)} l/h`,`Q = 400 × ${f2(D.S)} = ${f0(D.Q)} kcal/h = ${f2(D.QkW)} kW`]);
+  doc.p(`Le tubazioni sono in **acciaio non zincato**: il tubo zincato, indicato nella traccia, non si può usare perché oltre 60 °C, specie con il glicole, subisce la dezincatura. Esclusi anche plastica e multistrato (temperature oltre 180 °C). Il dimensionamento segue il metodo delle perdite di carico lineari costanti con r tra 10 e ${S.rmax} mm c.a./m (Tab. 7A, tubi in acciaio, acqua a 50 °C).`);
+  doc.calc([`Tubo De ${f1(D.pipe.p.de)} mm (Di ${f1(D.pipe.p.di)} mm) con G = ${f0(D.G)} l/h`,`r ≈ ${f2(D.pipe.r)} mm c.a./m · v = ${f2(D.pipe.v)} m/s`,`Perdite distribuite = ${f2(D.pipe.r)} × ${D.Ltot} m = ${f0(D.Hdist)} mm c.a.`]);
+  doc.fig(figPipe(D),'Sezione del tubo isolato e condizioni di moto',{width:13});
+  doc.h1('5. Isolamento termico');
+  doc.p(`Isolante: ${D.im.n} con conduttività λ = ${f3(S.lam)} W/(m·K). Lo spessore minimo si ricava dalla tabella dell’allegato B al DPR 412/93 in funzione del diametro esterno del tubo e di λ.`);
+  doc.calc([`De ${f1(D.pipe.p.de)} mm → colonna ${INS_C[D.ins.c]} mm`,`Spessore = ${f1(D.ins.s)} mm × ${D.insK} (${INS_POS[S.insPos].n.toLowerCase()}) = ${f1(D.insReq)} mm → ${D.insComm} mm commerciale`,`Superficie esterna (Tab. 9) = π × (${f1(D.pipe.p.de)} + 2 × ${D.insComm}) / 1000 = ${f3(D.Sext)} m²/m`,`Per ${D.Ltot} m di tubo: ${f2(D.Sext*D.Ltot)} m² di rivestimento`]);
+  doc.p('Nei tratti esterni l’isolante è protetto da acqua, raggi UV, roditori e uccelli con un mantello in lamiera zincata o alluminio. Vicino ai collettori serve un materiale resistente alle alte temperature (EPDM o lana minerale).');
+  doc.h1('6. Fluido antigelo');
+  doc.calc([`Protezione richiesta = ${D.L.tp} − 10 = ${D.Tprot} °C`,`Glicole propilenico ${D.gly.p}% → protezione fino a ${D.gly.t} °C`]);
+  doc.fig(figThermo(D),'Scelta della concentrazione del glicole',{width:12});
+  doc.h1('7. Serbatoio di accumulo e scambiatore');
+  doc.calc([`V = ${S.kV} × ${f2(D.S)} = ${f0(D.Vcalc)} l → serbatoio commerciale da ${D.Vtank} l`,`Scambiatore interno = ${S.scPct}% × ${f2(D.S)} = ${f2(D.Ssc)} m²`]);
+  doc.p(`Per l’impianto combinato si sceglie un serbatoio tank in tank: il serbatoio esterno contiene l’acqua tecnica per i pannelli radianti, quello interno l’acqua calda sanitaria (circa ${f0(D.ACS)} l/giorno a 45 °C per ${S.pers} persone). Il serpentino solare riscalda la parte bassa, la caldaia integra nella parte alta.`);
+  doc.fig(figTank('tit'),'Serbatoio combinato tank in tank',{width:11});
+  doc.h1('8. Vaso d’espansione');
+  doc.calc([`VP = ${D.N} × 1,6 = ${f1(D.VP)} l · VC = ${f1(D.VC)} l (pannelli, tubi, scambiatore, gruppo)`,`VU = (VC × 0,07 + VP) × 1,1 = ${f1(D.VU)} l`,`PI = ${f1(D.Hst)} / 10,2 + 0,5 = ${f1(D.PI)} bar · PF = ${f1(S.Pvs)} − 0,5 = ${f1(D.PF)} bar`,`VN = ${f1(D.VU)} × (${f1(D.PF)} + 1) / (${f1(D.PF)} − ${f1(D.PI)}) = ${f1(D.VN)} l → vaso da ${D.vaso} l`]);
+  doc.p('Il vaso contiene sia la dilatazione del fluido sia il vapore che si forma nei collettori in stagnazione. Va montato sul ritorno, con attacco verso il basso e senza isolamento.');
+  doc.fig(figVaso(D,130),'Funzionamento del vaso d’espansione in stagnazione',{width:11});
+  doc.h1('9. Circolatore');
+  doc.calc([`Perdite tubazioni = (${f0(D.Hdist)} + ${f0(D.Hloc)}) × 1,25 = ${f0(D.Hpipe)} mm c.a.`,`Collettori = ${f0(D.Hcoll)} mm c.a. · scambiatore e gruppo = ${f0(S.Hsc+S.Hgr)} mm c.a.`,`Circolatore: ${f2(D.G/1000)} m³/h con prevalenza ${f2(D.Hsys/1000)} m c.a.`]);
+  doc.fig(figPump(D),'Curva dell’impianto e punto di lavoro del circolatore',{width:13});
+  doc.h1('10. Schema dell’impianto e componenti');
+  doc.fig(figSchema({N:D.N}),'Schema completo dell’impianto combinato con i componenti numerati');
+  doc.table([['N.','Componente','Funzione'],...COMPS.map((c,i)=>[String(i+1),c.n,c.d])],{widths:[.4,2,5],cap:'Legenda dei componenti dello schema'});
+  doc.h1('11. Riepilogo');
+  doc.table([['Voce','Risultato'],['Superficie captante',`${D.N} × RPS 25/4 = ${f2(D.S)} m²`],['Portata circuito solare',`${f0(D.G)} l/h`],['Tubazioni',`acciaio non zincato De ${f1(D.pipe.p.de)} mm`],['Isolamento',`${D.insComm} mm, ${f3(D.Sext)} m²/m`],['Antigelo',`glicole ${D.gly.p}%`],['Accumulo',`tank in tank ${D.Vtank} l`],['Scambiatore',`${f2(D.Ssc)} m²`],['Vaso d’espansione',`${D.vaso} l, precarica ${f1(D.PI)} bar`],['Valvola di sicurezza',`${f1(S.Pvs)} bar`],['Circolatore',`${f2(D.G/1000)} m³/h · ${f2(D.Hsys/1000)} m c.a.`]],{widths:[2,3]});
+  return doc;
+}
+EX1.report=report1;
+// ===================== TRACCIA 2: DIAGNOSTICA E MANUTENZIONE =====================
+function ctrlUpdate(){const dT=S.Tc-S.Tb;if(!S.ctrlOn&&dT>7&&S.Tb<S.Tmax)S.ctrlOn=true;if(S.ctrlOn&&(dT<3||S.Tb>=S.Tmax))S.ctrlOn=false}
+function actsOn(){return S.acts.filter(a=>a.inc)}
+function ganttTableHTML(){const R=ganttRows(actsOn());const tot=R.length?R[R.length-1].e:0;
+  return `<div class="scroll"><table class="t"><tr><th style="text-align:left">ATTIVITÀ</th><th>Inizio</th><th>Dur. Min.</th><th>Fine int.</th></tr>${R.map(r=>`<tr><td style="text-align:left">${xesc(r.n)}</td><td>${r.s}</td><td>${r.d}</td><td>${r.e}</td></tr>`).join('')}<tr><th style="text-align:left">Durata totale</th><th></th><th>${tot}</th><th>${tot} min = ${f1(tot/60)} h</th></tr></table></div>`}
+
+const EX2={id:'diag',title:'Traccia 2: diagnostica e manutenzione dell’impianto solare',short:'Diagnostica e manutenzione',compute:()=>({}),steps:[
+{t:'La traccia',sub:'Villetta a schiera con riscaldamento radiante a pavimento e produzione ACS.',
+ ctrl:D=>`<div class="note blue"><b>Traccia d’esame n. 2.</b> In una villetta a schiera si deve provvedere al controllo periodico manutentivo dell’impianto a pannelli solari termici che garantisce il servizio combinato di riscaldamento con pannelli radianti a pavimento e di acqua calda sanitaria.<br><b>Prima parte:</b> illustrare i componenti fondamentali, le metodologie di regolazione del circuito primario e dell’impianto combinato, l’analisi dei guasti tipici con gli interventi correttivi e preventivi.<br><b>Seconda parte:</b> individuare gli interventi e redigere un diagramma di Gantt con le fasi operative e i tempi del controllo periodico.</div>`,
+ out:D=>`${figBox(figSchema({L:true,nums:false}),'L’impianto che dobbiamo controllare: solare combinato con serbatoio tank in tank')}
+  <div class="note">Percorso: componenti → pannelli e serbatoi → regolazione → guasti → piano dei controlli e Gantt → relazione Word.</div>`},
+{t:'Componenti fondamentali',sub:'Tocca un numero sullo schema o un componente nell’elenco. Le spunte decidono cosa entra nella relazione.',
+ ctrl:D=>'',
+ out:D=>`${figBox(figSchema({L:true,hi:S.comp}),'Schema dell’impianto con i componenti numerati')}${compCard()}
+  <div class="list">${COMPS.map((c,i)=>`<div class="row ${S.compOn[c.k]?'':'off'}"><input type="checkbox" data-chk="compOn" data-id="${c.k}" ${S.compOn[c.k]?'checked':''}><span class="nm"><b>${i+1}.</b> <a href="#" data-comp="${c.k}">${c.n}</a></span></div>`).join('')}</div>`},
+{t:'Pannelli e serbatoi',sub:'Tipologie di collettori e di accumulo: scegli quelle del tuo impianto.',
+ ctrl:D=>`<h3>Collettori</h3>${opt('panelType',Object.entries(PANEL_TYPES).map(([k,p])=>[k,p.n]))}<h3>Serbatoio di accumulo</h3>${opt('tankType',Object.entries(TANK_TYPES).map(([k,p])=>[k,p.n]))}`,
+ out:D=>`<div class="g2"><div>${figBox(figPanelType(S.panelType,true),PANEL_TYPES[S.panelType].n)}<p>${PANEL_TYPES[S.panelType].d}</p></div>
+  <div>${figBox(figTank(S.tankType,{},true),TANK_TYPES[S.tankType].n)}<p>${TANK_TYPES[S.tankType].d}</p>${S.tankType!=='tit'?'<div class="note">Per un impianto combinato (riscaldamento + ACS) la soluzione indicata è il tank in tank.</div>':''}</div></div>`},
+{t:'Metodologie di regolazione',sub:'Circuito primario e impianto combinato: muovi i cursori e guarda cosa succede.',
+ ctrl:D=>`${opt('regTab',Object.entries(REGS).map(([k,r])=>[k,r.n]))}
+  ${S.regTab==='prim'?`<div class="g2"><div>${rng('Tc','T collettore (S1)',0,150,1,'°C')}</div><div>${rng('Tb','T serbatoio basso (S2)',10,95,1,'°C')}${rng('Tmax','T max serbatoio',60,95,5,'°C')}</div></div>`:''}
+  ${S.regTab==='tit'?opt('scen2',[['sole','Sole forte'],['debole','Sole debole'],['notte','Notte']]):''}
+  ${S.regTab==='dev'?rng('Ts','T acqua serbatoio solare',15,80,1,'°C'):''}
+  ${S.regTab==='acs'?rng('Tacs','T parte alta bollitore',20,80,1,'°C'):''}`,
+ out:D=>{const r=REGS[S.regTab];let f='';
+  if(S.regTab==='prim'){ctrlUpdate();f=figBox(figCtrl({Tc:S.Tc,Tb:S.Tb,on:S.ctrlOn,tmax:S.Tmax,L:true}),'Regolazione differenziale del circuito primario')}
+  if(S.regTab==='tit')f=figBox(figSchema({L:true,st:SCEN[S.scen2],nums:false}),'Funzionamento con serbatoio tank in tank')+`<p>${S.scen2==='sole'?'Il solare basta: caldaia spenta, l’acqua tecnica alimenta i pannelli radianti e scalda l’ACS.':S.scen2==='debole'?'Il solare preriscalda la parte bassa; il termostato alto accende la caldaia per mantenere la temperatura.':'Pompa solare ferma (ΔT negativo), valvole di ritegno chiuse; la caldaia mantiene la parte alta.'}</p>`;
+  if(S.regTab==='dev')f=figBox(figDev({Ts:S.Ts,L:true}),'Doppio bollitore con valvola deviatrice')+`<p>${S.Ts>=45?`Acqua solare a ${S.Ts} °C: la deviatrice la manda direttamente all’utenza, la caldaia resta spenta.`:`Acqua solare a ${S.Ts} °C, sotto la soglia: la deviatrice la manda nel bollitore della caldaia per l’integrazione.`}</p>`;
+  if(S.regTab==='acs')f=figBox(figTank('ds',{Ttop:S.Tacs,Tbot:Math.min(S.Tacs,35),boil:S.Tacs<45,heat:0},true),'ACS con bollitore a doppio serpentino e caldaia integrativa')+`<p>${S.Tacs<45?'Parte alta sotto 45 °C: il termostato accende la caldaia sul serpentino superiore.':'Parte alta sopra 45 °C: la caldaia resta spenta, lavora solo il solare.'}</p>`;
+  return `<div class="note blue"><b>${r.n}.</b> ${r.d}</div>${f}`}},
+{t:'Analisi dei guasti',sub:'Scegli un guasto: guarda il sintomo sull’impianto e leggi diagnosi e interventi.',
+ ctrl:D=>`<div class="faults">${FAULTS.map(f=>`<button class="opt ${S.fault===f.k?'sel':''}" data-set="fault" data-val="${f.k}">${f.n}<small>${S.faultOn[f.k]?'✔ nella relazione':'non incluso'}</small></button>`).join('')}</div>`,
+ out:D=>{const f=FAULTS.find(x=>x.k===S.fault);return `${figBox(figSchema({L:true,fault:f.k,hi:f.comp,nums:false,title:'GUASTO: '+f.n}),'Come si presenta il guasto')}
+  <div class="card" style="background:#fff;margin-top:10px"><h3 style="margin-top:0">${f.n}</h3><div class="kv"><b>Sintomo</b><span>${f.sint}</span><b>Come si verifica</b><span>${f.ver}</span><b>Causa</b><span>${f.causa}</span><b>Intervento correttivo</b><span>${f.corr}</span><b>Intervento preventivo</b><span>${f.prev}</span></div>
+  <p><label><input type="checkbox" data-chk="faultOn" data-id="${f.k}" ${S.faultOn[f.k]?'checked':''}> Includi questo guasto nella relazione</label></p></div>`}},
+{t:'Piano dei controlli e diagramma di Gantt',sub:'Come in classe: Inizio = Fine dell’attività precedente, Fine = Inizio + Durata.',
+ ctrl:D=>`<div class="list">${S.acts.map((a,i)=>`<div class="row ${a.inc?'':'off'}"><input type="checkbox" data-act="${i}" data-f="inc" ${a.inc?'checked':''}><span class="nm">${xesc(a.n)}<br><small style="color:var(--muted)">${xesc(a.str)} · ${a.freq}</small></span><input type="number" min="5" max="600" step="5" value="${a.d}" data-act="${i}" data-f="d" title="durata in minuti"> min<button data-mv="${i}" data-dir="-1" title="sposta su">↑</button><button data-mv="${i}" data-dir="1" title="sposta giù">↓</button></div>`).join('')}</div>
+  <p><label><input type="checkbox" data-chk1="excelOrder" ${S.excelOrder?'checked':''}> Prima attività in basso (come il grafico di Excel)</label></p>`,
+ out:D=>`${ganttTableHTML()}${figBox(figGantt(actsOn(),{L:true,excel:S.excelOrder}),'Diagramma di Gantt del controllo periodico')}
+  <div class="opts"><button class="btn sun" id="xlsBtn">⬇ Scarica il Gantt in Excel</button></div>
+  <div class="note">Il file Excel ha la stessa tabella con le formule (Inizio = Fine precedente, Fine = Inizio + Durata) e il grafico a barre in pila: se cambi una durata, il Gantt si aggiorna da solo.</div>`},
+{t:'Relazione Word',sub:'Compila l’intestazione e scarica la relazione completa con tutte le figure.',report:true}
+]};
+
+async function report2(){
+  const doc=new Doc('Diagnostica impianti termici e solari - Relazione tecnica (traccia n. 2)');
+  const comps=COMPS.filter(c=>S.compOn[c.k]),faults=FAULTS.filter(f=>S.faultOn[f.k]),acts=actsOn(),R=ganttRows(acts),tot=R.length?R[R.length-1].e:0;
+  doc.cover('Relazione tecnica di diagnostica e manutenzione','Impianto solare termico combinato a servizio di una villetta a schiera: riscaldamento radiante a pavimento e acqua calda sanitaria');
+  doc.table([['Dato','Valore'],['Studente',S.studente||'-'],['Classe',S.classe||'-'],['Istituto',S.scuola||'-'],['Data',S.data||'-'],['Traccia','Diagnostica impianti termici e solari n. 2']],{widths:[1,2]});
+  doc.p(`**Sintesi.** Analisi dei componenti, della regolazione e dei guasti tipici di un impianto solare termico combinato con serbatoio ${TANK_TYPES[S.tankType].n.toLowerCase()} e caldaia integrativa, e programmazione del controllo periodico con diagramma di Gantt (durata totale ${tot} minuti).`).pb();
+  doc.h1('1. Inquadramento tecnico e descrizione dell’impianto');
+  doc.p('L’impianto serve una villetta a schiera e realizza un sistema solare termico combinato: garantisce il riscaldamento invernale degli ambienti con pannelli radianti a bassa temperatura annegati nel pavimento e la produzione di acqua calda sanitaria (ACS). Nei periodi di scarso irraggiamento il calore mancante è fornito da una caldaia integrativa, murale o a basamento.');
+  doc.p('Il circuito primario (collettori, tubazioni, gruppo di circolazione, scambiatore) contiene una miscela di acqua e glicole propilenico e lavora a circolazione forzata, comandata da una centralina differenziale. I pannelli radianti, che lavorano a 30-35 °C, permettono ai collettori di funzionare con buon rendimento anche d’inverno.');
+  doc.h1('2. Componenti fondamentali');
+  doc.p('La corretta realizzazione dell’impianto richiede i seguenti componenti:');
+  doc.bul(comps.map(c=>`**${c.n}:** ${c.d}`));
+  doc.fig(figSchema({}),'Schema generale dell’impianto solare termico combinato con i componenti numerati');
+  doc.table([['N.','Componente'],...COMPS.map((c,i)=>[String(i+1),c.n])],{widths:[.5,5],cap:'Legenda dello schema'});
+  doc.h1('3. Tipologie di pannelli solari e serbatoi di accumulo');
+  doc.p('I collettori solari termici si dividono in collettori ad alta temperatura, con specchi concentratori, e a bassa temperatura. Questi ultimi comprendono:');
+  doc.bul(Object.values(PANEL_TYPES).map(p=>`**${p.n}:** ${p.d}`));
+  doc.p(`Nell’impianto in esame sono installati collettori **${PANEL_TYPES[S.panelType].n.toLowerCase()}**.`);
+  doc.fig(figPanelType(S.panelType),'Collettori '+PANEL_TYPES[S.panelType].n.toLowerCase(),{width:13});
+  doc.p('Tipologie di serbatoi di accumulo:');
+  doc.bul(Object.values(TANK_TYPES).map(p=>`**${p.n}:** ${p.d}`));
+  doc.fig(figTank(S.tankType),'Serbatoio '+TANK_TYPES[S.tankType].n.toLowerCase()+' con i circuiti collegati',{width:11});
+  doc.h1('4. Metodologie di regolazione');
+  doc.p('La regolazione deve sfruttare al massimo l’energia solare e ridurre l’intervento della caldaia. I sistemi di emissione a bassa temperatura migliorano l’efficienza complessiva.');
+  doc.h2('4.1 Regolazione del circuito primario').p(REGS.prim.d);
+  doc.fig(figCtrl({Tc:62,Tb:40,on:true}),'Regolazione differenziale: con ΔT = 22 K la centralina tiene accesa la pompa',{width:13});
+  doc.h2('4.2 Impianto combinato con serbatoio tank in tank').p(REGS.tit.d);
+  doc.fig(figSchema({st:SCEN.debole,nums:false}),'Tank in tank con sole debole: il solare preriscalda, la caldaia integra la parte alta');
+  doc.h2('4.3 Doppio bollitore con valvola deviatrice').p(REGS.dev.d);
+  doc.fig(figDev({Ts:38}),'Acqua solare sotto la soglia: la deviatrice la invia al bollitore della caldaia',{width:14});
+  doc.h2('4.4 Acqua calda sanitaria con caldaia integrativa').p(REGS.acs.d);
+  doc.fig(figTank('ds',{Ttop:40,Tbot:32,boil:1,heat:0}),'Bollitore a doppio serpentino con integrazione della caldaia',{width:11});
+  doc.h1('5. Analisi dei guasti tipici e interventi manutentivi');
+  doc.p('Per ogni guasto si riportano sintomo, modalità di verifica, causa e interventi correttivi e preventivi.');
+  doc.table([['Guasto','Sintomo','Intervento correttivo','Intervento preventivo'],...faults.map(f=>[f.n,f.sint,f.corr,f.prev])],{widths:[1.4,2,2,2],align:['left','left','left','left'],cap:'Quadro riassuntivo dei guasti'});
+  faults.forEach((f,i)=>{doc.h2(`5.${i+1} ${f.n}`);doc.bul([`**Sintomo:** ${f.sint}`,`**Verifica:** ${f.ver}`,`**Causa:** ${f.causa}`,`**Intervento correttivo:** ${f.corr}`,`**Intervento preventivo:** ${f.prev}`]);
+    doc.fig(figSchema({fault:f.k,hi:f.comp,nums:false,title:'GUASTO: '+f.n}),f.n+': come si presenta sull’impianto',{width:12})});
+  doc.h1('6. Programmazione dei controlli periodici e diagramma di Gantt');
+  doc.p(`Per garantire il corretto funzionamento dell’impianto nel suo ciclo di vita si programma un controllo periodico composto da ${acts.length} attività eseguite in sequenza. Ogni attività inizia quando termina la precedente (Inizio = Fine precedente, Fine = Inizio + Durata).`);
+  doc.table([["ATTIVITÀ MANUTENTIVA",'INIZIO (min)','DURATA (min)','FINE INT. (min)'],...R.map(r=>[r.n,String(r.s),String(r.d),String(r.e)]),['Durata totale','',String(tot),`${tot} min = ${f1(tot/60)} h`]],{widths:[3,1,1,1.3],total:true,cap:`Cronoprogramma del controllo periodico (durata totale ${tot} minuti, ${f1(tot/60)} ore)`});
+  doc.fig(figGantt(acts,{excel:S.excelOrder}),'Diagramma di Gantt del controllo periodico');
+  doc.h2('Fasi operative');
+  doc.table([['Attività','Modalità esecutiva','Strumenti','Frequenza'],...acts.map(a=>[a.n,a.mod,a.str,a.freq])],{widths:[1.6,3,1.6,.9],align:['left','left','left','center'],cap:'Descrizione delle fasi operative'});
+  doc.p('Prima di iniziare: impianto in sicurezza (pompa e caldaia ferme, collettori freddi o coperti, lavoro nelle ore fresche), DPI e dispositivi anticaduta per l’accesso al tetto. Al termine: ripristino della pressione, verifica della ripartenza della pompa con il sole e compilazione del libretto di impianto.');
+  return doc;
+}
+EX2.report=report2;
+// ===================== STATO =====================
+const DEF={ex:null,step:0,done:{},studente:'',classe:'',scuola:'',data:new Date().toLocaleDateString('it-IT'),
+ loc:'agrigento',A:180,pers:4,roof:'falda',tilt:35,flatTilt:45,az:0,W:12,L:6,obs:[{t:'camino',x:9.6,y:0.9,w:0.6,h:0.6}],hg:6.2,
+ coef:0.5,aref:'lorda',orient:'V',rows:1,margin:0.5,offX:0.5,offY:0.3,gs:40,pipeMat:null,rmax:15,Lone:14,insMat:'nbr',lam:0.035,insPos:'est',
+ kV:50,scPct:37,Pvs:6,Hsc:600,Hgr:0,scen1:'sole',comp:'coll',
+ compOn:Object.fromEntries(COMPS.map(c=>[c.k,true])),panelType:'piano',tankType:'tit',regTab:'prim',Tc:60,Tb:40,Tmax:85,ctrlOn:true,scen2:'debole',Ts:38,Tacs:40,
+ fault:'caldo',faultOn:Object.fromEntries(FAULTS.map(f=>[f.k,!!f.def])),acts:ACTS.map(a=>({...a})),excelOrder:false};
+const KEY='solsim-v4';
+let S=(()=>{try{const s=JSON.parse(localStorage.getItem(KEY));return s?{...JSON.parse(JSON.stringify(DEF)),...s}:JSON.parse(JSON.stringify(DEF))}catch(e){return JSON.parse(JSON.stringify(DEF))}})();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const EXS={dim:EX1,diag:EX2};
+
+// ===================== HELPER UI =====================
+function rng(k,label,min,max,step,unit='',dec=0){return `<div class="ctrl"><label>${label}<b id="v_${k}">${fmt(S[k],dec)} ${unit}</b></label><input type="range" data-k="${k}" data-dec="${dec}" data-unit="${unit}" min="${min}" max="${max}" step="${step}" value="${S[k]}"></div>`}
+const rngX=rng;
+function num(k,label,min,max,step){return `<div class="ctrl"><label>${label}</label><input type="number" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${S[k]}"></div>`}
+function opt(k,list){return `<div class="opts" style="margin:6px 0">${list.map(([v,t,s])=>`<button class="opt ${String(S[k])===String(v)?'sel':''}" data-set="${k}" data-val="${v}">${t}${s?`<small>${s}</small>`:''}</button>`).join('')}</div>`}
+function calc(lines,res){return `<div class="calc">${lines.map(l=>`<div class="f">${l}</div>`).join('')}${res?`<div class="res">${res}</div>`:''}</div>`}
+function chip(c,t){return `<span class="chip ${c}">${c==='ok'?'✔':c==='bad'?'✖':'⚠'} ${t}</span>`}
+function figBox(f,cap){return `<div class="fig">${f.svg}${cap?`<div class="cap">${cap}</div>`:''}</div>`}
+function compCard(){const i=COMPS.findIndex(c=>c.k===S.comp),c=COMPS[i]||COMPS[0];return `<div class="note blue"><b>${i+1}. ${c.n}.</b> ${c.d}</div>`}
+
+// ===================== RENDER =====================
+function home(){
+  $('#ttl').innerHTML='Simulatore impianti solari termici<small>Scegli la traccia da svolgere</small>';$('#pills').innerHTML='';
+  $('#main').innerHTML=`<div class="home-cards">
+   <button class="hc" data-ex="dim">${figBox(figHouse({tilt:35,lat:37.3,L:true}),'')}<div class="tx"><h3>Traccia 1 · Dimensionamento</h3><p>Villetta 180 m² ad Agrigento: superficie, pannelli Riello RPS 25/4, disposizione sul tetto, tubi, isolamento, antigelo, accumulo, vaso, pompa. 9 fasi.</p></div></button>
+   <button class="hc" data-ex="diag">${figBox(figGantt(ACTS.filter(a=>a.inc),{L:true,title:'DIAGRAMMA DI GANTT'}),'')}<div class="tx"><h3>Traccia 2 · Diagnostica e manutenzione</h3><p>Villetta a schiera con radiante e ACS: componenti, regolazione, guasti tipici, piano dei controlli e diagramma di Gantt. 7 fasi.</p></div></button></div>
+   <div class="note">Alla fine di ogni traccia scarichi la <b>relazione in Word</b> con tutte le figure. Il lavoro resta salvato in questo browser.</div>`;
+}
+function render(){
+  if(!S.ex){home();save();return}
+  const EX=EXS[S.ex],st=EX.steps[S.step],D=EX.compute();
+  $('#ttl').innerHTML=`${EX.title}<small>Fase ${S.step+1} di ${EX.steps.length}</small>`;
+  $('#pills').innerHTML=EX.steps.map((s,i)=>`<button class="${i===S.step?'cur':S.done[S.ex+i]?'done':''}" data-go="${i}">${i+1}. ${s.t}</button>`).join('');
+  const body=st.report?reportUI(EX):`<div id="ctrl">${st.ctrl(D)}</div><div id="out">${st.out(D)}</div>`;
+  $('#main').innerHTML=`<div class="card"><div class="head"><span class="n">${S.step+1}</span><div><h2>${st.t}</h2><p>${st.sub||''}</p></div></div>${body}</div>
+   <div class="nav"><button class="btn ghost" id="prev">← ${S.step?'Indietro':'Tracce'}</button>${S.step<EX.steps.length-1?`<button class="btn" id="next">Avanti →</button>`:''}</div>`;
+  const cur=$('#pills .cur');if(cur)cur.scrollIntoView({block:'nearest',inline:'center'});
+  save();
+}
+function refreshOut(){const EX=EXS[S.ex],st=EX.steps[S.step];if(st.out){$('#out').innerHTML=st.out(EX.compute())}save()}
+function go(i){S.done[S.ex+S.step]=true;S.step=i;render();window.scrollTo({top:0,behavior:'smooth'})}
+function reportUI(EX){
+  const t2=S.ex==='diag';
+  return `<div class="g2"><div>${['studente','classe','scuola','data'].map(k=>`<div class="ctrl"><label>${k[0].toUpperCase()+k.slice(1)}</label><input type="text" data-k="${k}" value="${xesc(S[k]||'')}"></div>`).join('')}</div>
+   <div><h3>Cosa contiene</h3><ul style="margin:0;padding-left:20px;font-size:14px">${t2?
+    `<li>Copertina e sintesi</li><li>Inquadramento dell’impianto</li><li>${Object.values(S.compOn).filter(Boolean).length} componenti con schema numerato</li><li>Tipologie di pannelli e serbatoi</li><li>4 metodologie di regolazione con figure</li><li>${Object.values(S.faultOn).filter(Boolean).length} guasti con figura, verifica e interventi</li><li>Cronoprogramma, diagramma di Gantt (${actsOn().reduce((a,b)=>a+b.d,0)} min) e fasi operative</li>`:
+    `<li>Copertina con sezione dell’edificio</li><li>Dati di progetto e altezze del sole</li><li>Superficie e numero di collettori</li><li>Disposizione sul tetto e collegamento</li><li>Portata, tubazioni, isolamento</li><li>Antigelo, accumulo, vaso, circolatore</li><li>Schema completo, legenda e riepilogo</li>`}</ul>
+   <div class="opts" style="margin-top:14px"><button class="btn sun" id="docBtn">⬇ Scarica la relazione Word</button>${t2?'<button class="btn ghost" id="xlsBtn">⬇ Gantt in Excel</button>':''}</div>
+   <p style="font-size:13px;color:var(--muted)">Il file .docx si apre con Word, Google Documenti o LibreOffice e resta modificabile.</p></div></div>`;
+}
+async function exportDocx(){
+  const busy=document.createElement('div');busy.className='busy';busy.textContent='Preparo la relazione…';document.body.appendChild(busy);
+  try{const doc=await EXS[S.ex].report();const blob=await buildDocx(doc,m=>busy.textContent=m);window.__lastDocx=blob;
+    const nm=(S.studente||'').trim().replace(/\s+/g,'_').replace(/[^\w-]/g,'');
+    download(blob,`Relazione_${S.ex==='dim'?'Traccia1_dimensionamento':'Traccia2_diagnostica'}${nm?'_'+nm:''}.docx`)}
+  catch(e){alert('Errore nella creazione del file: '+e.message);console.error(e)}
+  busy.remove();
+}
+function exportXlsx(){const blob=buildGanttXlsx(actsOn(),'DIAGRAMMA DI GANTT - Controllo periodico impianto solare termico',!S.excelOrder);window.__lastXlsx=blob;download(blob,'Diagramma_di_Gantt_pannelli_solari.xlsx')}
+
+// ===================== EVENTI =====================
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.dataset.act!=null&&t.dataset.f==='d'){const v=parseFloat(t.value);if(!isNaN(v)&&v>0){S.acts[+t.dataset.act].d=v;refreshOut()}return}
+  if(t.dataset.k){const k=t.dataset.k;if(t.type==='text'){S[k]=t.value;save();return}
+    const v=parseFloat(t.value);if(isNaN(v))return;S[k]=v;const lb=$('#v_'+k);if(lb)lb.textContent=fmt(v,+t.dataset.dec||0)+' '+(t.dataset.unit||'');
+    if(t.dataset.full)render();else refreshOut()}
+});
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.tagName==='SELECT'&&t.dataset.k){S[t.dataset.k]=t.value;if(t.dataset.k==='loc'){S.coef=ZONE[LOC[t.value].zona].small[0]}render()}
+  if(t.dataset.chk){S[t.dataset.chk][t.dataset.id]=t.checked;render()}
+  if(t.dataset.chk1){S[t.dataset.chk1]=t.checked;refreshOut()}
+  if(t.dataset.act!=null&&t.dataset.f==='inc'){S.acts[+t.dataset.act].inc=t.checked;render()}
+});
+document.addEventListener('click',e=>{const b=e.target.closest('button,[data-comp]');if(!b)return;
+  if(b.dataset.ex){S.ex=b.dataset.ex;S.step=0;return render()}
+  if(b.id==='homeBtn'){S.ex=null;return render()}
+  if(b.dataset.go!=null)return go(+b.dataset.go);
+  if(b.id==='next')return go(S.step+1);
+  if(b.id==='prev'){if(S.step===0){S.ex=null;return render()}return go(S.step-1)}
+  if(b.id==='docBtn')return exportDocx();
+  if(b.id==='xlsBtn')return exportXlsx();
+  if(b.dataset.comp){e.preventDefault();S.comp=b.dataset.comp;return render()}
+  if(b.dataset.mv!=null){const i=+b.dataset.mv,j=i+(+b.dataset.dir);if(j>=0&&j<S.acts.length){[S.acts[i],S.acts[j]]=[S.acts[j],S.acts[i]]}return render()}
+  if(b.dataset.set){const k=b.dataset.set;let v=b.dataset.val;if(v!==''&&!isNaN(+v))v=+v;S[k]=v;
+    if(k==='insMat')S.lam=INS_MAT[v].l;if(k==='orient')S.rows=1;
+    if(k==='fault'){S.comp=FAULTS.find(f=>f.k===v).comp}
+    return render()}
+});
+render();
+</script></body></html>
