@@ -28,19 +28,19 @@ const STEPS=[
 {id:'pannello',grp:'I dati',t:'Il pannello',
  tutor:D=>({msg:'Scegli il pannello. Dalla sua scheda tecnica ti servono solo <b>quattro numeri</b>: te li evidenzio.',dove:'Nella scheda tecnica del pannello: superficie, litri di liquido contenuti, perdita di carico (grafico) e quanti se ne possono mettere in fila.',perche:'Questi quattro numeri tornano nei calcoli dopo: numero di pannelli, pompa e vaso.'}),
  form:D=>`${optf('pan','Modello',[['rps254','Riello RPS 25/4','piano vetrato'],['custom','Un altro pannello','copio i dati dalla scheda']])}
-  ${S.pan==='custom'?`<div class="g3">${[['n','Nome','',0],['Ar','Superficie','m²',.01],['vol','Liquido contenuto','l',.1],['Gp','Portata di prova','l/h',1],['Hp','Perdita a quella portata','mm c.a.',1],['maxV','Massimo in fila','',1],['lung','Lunghezza','mm',1],['larg','Larghezza','mm',1]].map(([k,l,u,s])=>`<div class="ctrl"><label>${l} <span class="u">${u}</span></label><input type="${k==='n'?'text':'number'}" step="${s}" data-cp="${k}" value="${xesc(S.cp[k])}"></div>`).join('')}</div>`:''}
+  ${S.pan==='custom'?`<div class="g3">${[['n','Nome','',0],['Ar','Superficie','m²',.01],['vol','Liquido contenuto','l',.1],['Gp','Portata di prova','l/h',1],['Hp','Perdita a quella portata','mm c.a.',1],['maxV','Massimo in fila','',1],['lung','Lunghezza','mm',1],['larg','Larghezza','mm',1]].map(([k,l,u,s])=>`<div class="ctrl"><label>${l} <span class="u">${u}</span></label><input type="text" ${k==='n'?'maxlength="40"':'inputmode="decimal"'} data-cp="${k}" class="${S.bad['cp_'+k]?'err':''}" value="${xesc(S.bad['cp_'+k]?S.bad['cp_'+k].raw:String(S.cp[k]).replace('.',k==='n'?'.':','))}" autocomplete="off"><div class="ferr" id="e_cp_${k}">${S.bad['cp_'+k]?'⚠ '+S.bad['cp_'+k].err:''}</div></div>`).join('')}</div>`:''}
   <div class="four">${[['Superficie',f2(D.P.Ar)+' m²'],['Liquido',f1(D.P.vol)+' l'],['Perdita',`${f0(D.P.Hp)} mm c.a. a ${f0(D.P.Gp)} l/h`],['In fila','max '+D.P.maxV]].map(([a,b],i)=>`<div><span>${i+1}</span><small>${a}</small><b>${b}</b></div>`).join('')}</div>`,
  gives:D=>[['Pannello',D.P.n],['Superficie',f2(D.P.Ar)+' m²']],
  figs:[{n:'Scheda tecnica',f:D=>figPanelSheet(D)},{n:'Com’è fatto',f:D=>figPanelType('piano',true)}]},
 
-{id:'numero',grp:'I calcoli',t:'Quanti pannelli servono',need:['A','regione','prov'],
+{id:'numero',grp:'I calcoli',block:D=>D.N>40?`Servirebbero ${D.N} pannelli: troppi per una casa. Controlla la superficie inserita (${f0(D.A)} m²).`:'',t:'Quanti pannelli servono',need:['A','regione','prov'],
  tutor:D=>({msg:'Usiamo la <b>tabella dei coefficienti</b>: ci dice quanti m² di pannello servono ogni 10 m² di casa.',dove:'Tabella “Edifici ad uso abitativo, impianti combinati” del manuale (Caleffi).',perche:'Più sole c’è, meno pannelli servono: per questo i valori del Sud sono più bassi.'}),
  uses:D=>[['Superficie casa',f0(D.A)+' m²'],['Zona','Italia '+D.zona],['Superficie pannello',f2(D.Aref)+' m²']],
  tasks:[
-  {id:'n1',kind:'cell',table:'coef',click:'cell',q:D=>`Nella tabella tocca la cella della riga <b>Italia ${D.zona}</b> e della colonna <b>${D.size==='small'?'Piccole dimensioni':'Medio-grandi'}</b>.`,target:D=>({r:ZIDX[D.zona],c:D.size==='small'?0:1}),help:D=>`Una casa singola è un impianto di piccole dimensioni. Cerca la riga “Italia ${D.zona}”.`,show:D=>`La cella è ${f2(D.zr[0])} ÷ ${f2(D.zr[1])}.`},
+  {id:'n1',kind:'cell',table:'coef',click:'cell',q:D=>`Cerco nella tabella la riga <b>Italia ${D.zona}</b> e la colonna <b>${D.size==='small'?'Piccole dimensioni':'Medio-grandi'}</b>.`,target:D=>({r:ZIDX[D.zona],c:D.size==='small'?0:1}),help:D=>`Una casa singola è un impianto di piccole dimensioni. Cerca la riga “Italia ${D.zona}”.`,show:D=>`La cella è ${f2(D.zr[0])} ÷ ${f2(D.zr[1])}.`},
   {id:'n2',kind:'pick',key:'coef',q:D=>`La cella dà un intervallo: <b>${f2(D.zr[0])} ÷ ${f2(D.zr[1])}</b>. Quale valore scegli?`,opts:D=>[[D.zr[0],f2(D.zr[0]),'il più basso: meno caldo d’estate'],[r1((D.zr[0]+D.zr[1])/2*10)/10,f2(r1((D.zr[0]+D.zr[1])/2*10)/10),'via di mezzo'],[D.zr[1],f2(D.zr[1]),'il più alto: più aiuto d’inverno']],help:()=>'Vanno bene tutti. Di solito si prende il più basso, così d’estate l’impianto non si surriscalda.'},
-  {id:'n3',kind:'num',unit:'m²',q:D=>`Calcola la superficie dei pannelli: <b>S = ${f2(D.coef)} × ${f0(D.A)} / 10</b>`,exp:D=>D.Sreq,help:D=>`Moltiplica ${f2(D.coef)} per ${f0(D.A)} e poi dividi per 10.`,show:D=>`S = ${f2(D.coef)} × ${f0(D.A)} / 10 = ${f2(D.Sreq)} m²`},
-  {id:'n4',kind:'num',unit:'pannelli',abs:0.01,q:D=>`Ogni pannello è ${f2(D.Aref)} m². Quanti pannelli? <b>N = ${f2(D.Sreq)} / ${f2(D.Aref)}</b>, arrotondato per eccesso.`,exp:D=>D.N,help:D=>`Viene ${f2(D.Nraw)}: i pannelli sono interi, quindi si arrotonda sempre in su.`,show:D=>`N = ${f2(D.Sreq)} / ${f2(D.Aref)} = ${f2(D.Nraw)} → ${D.N} pannelli`}],
+  {id:'n3',kind:'num',unit:'m²',q:D=>`Calcoliamo la superficie dei pannelli: <b>S = ${f2(D.coef)} × ${f0(D.A)} / 10</b>`,exp:D=>D.Sreq,help:D=>`Moltiplica ${f2(D.coef)} per ${f0(D.A)} e poi dividi per 10.`,show:D=>`S = ${f2(D.coef)} × ${f0(D.A)} / 10 = ${f2(D.Sreq)} m²`},
+  {id:'n4',kind:'num',unit:'pannelli',abs:0.01,q:D=>`Ogni pannello è ${f2(D.Aref)} m². Numero di pannelli: <b>N = ${f2(D.Sreq)} / ${f2(D.Aref)}</b>, arrotondato per eccesso.`,exp:D=>D.N,help:D=>`Viene ${f2(D.Nraw)}: i pannelli sono interi, quindi si arrotonda sempre in su.`,show:D=>`N = ${f2(D.Sreq)} / ${f2(D.Aref)} = ${f2(D.Nraw)} → ${D.N} pannelli`}],
  gives:D=>[['Superficie necessaria',f2(D.Sreq)+' m²'],['Pannelli',D.N],['Superficie installata',f2(D.Snet)+' m²']],
  figs:[{n:'Tabella coefficienti',f:D=>figCoef(D,!done('n3'))},{n:'Dai m² ai pannelli',f:D=>done('n4')?figTiles(D.Sreq,D.N,D.Aref):figCoef(D,true)},{n:'Il percorso dei calcoli',f:D=>figFlow(D,1)}]},
 
@@ -62,17 +62,17 @@ const STEPS=[
  gives:D=>[['Portata per pannello',f1(D.Gp)+' l/h'],['Portata totale',f0(D.G)+' l/h']],
  figs:[{n:'La portata nei pannelli',f:D=>figString(D,true)},{n:'Il percorso dei calcoli',f:D=>figFlow(D,2)}]},
 
-{id:'tubi',grp:'Le tabelle',t:'Il tubo giusto · Tabella 1',need:['A','regione','prov'],
+{id:'tubi',grp:'Le tabelle',block:D=>D.pipeOver?`La portata (${f0(D.G)} l/h) è troppo grande per i tubi di questa tabella: controlla la superficie della casa e il numero di pannelli.`:'',t:'Il tubo giusto · Tabella 1',need:['A','regione','prov'],
  tutor:D=>({msg:`Ora usiamo la <b>Tabella 1</b> (sul libro: Tab. 7A, perdite di carico nei tubi d’acciaio). Ci serve un solo numero: la portata <b>G = ${f0(D.G)} l/h</b>.`,dove:'È la tabella “Perdite di carico continue, tubi in acciaio, acqua a 50 °C”: a sinistra la perdita r, in alto i diametri, nelle celle le portate.',perche:'Si sceglie il tubo più piccolo che porta la nostra acqua senza perdere troppa pressione (r tra 10 e 15 mm per metro: noi usiamo 12).'}),
  form:D=>numf('Lone','Distanza tra pannelli e locale caldaia (solo andata)','m',2,80,0.5,'dalla traccia, oppure misurala sul disegno'),
  uses:D=>[['Portata G',f0(D.G)+' l/h']],
  tasks:[
   {id:'u1',kind:'pick',key:'pipeMat',q:()=>'Prima di tutto: di che materiale è il tubo?',opts:()=>[['zinc','Acciaio zincato'],['nero','Acciaio non zincato'],['multi','Plastica multistrato']],correct:()=>'nero',help:()=>'Pensa al calore: d’estate il circuito supera i 100 °C e contiene antigelo.',bad:D=>S.pipeMat==='zinc'?'No: oltre 60 °C lo zinco si stacca (dezincatura). Riprova.':'No: la plastica non regge le temperature dei pannelli. Riprova.'},
-  {id:'u2',kind:'cell',table:'t7a',click:'row',q:()=>'Nella <b>prima colonna</b> (r) tocca la riga <b>12</b>.',target:D=>({r:PIPE_R.indexOf(D.rimp),c:-1}),help:()=>'La prima colonna va da 2 in giù: 2, 4, 6, 8, 10, 12…',show:()=>'È la riga r = 12 mm c.a./m.'},
-  {id:'u3',kind:'cell',table:'t7a',click:'cell',rowOn:D=>PIPE_R.indexOf(D.rimp),q:D=>`Resta sulla riga 12 e vai verso destra: tocca la <b>prima cella</b> con un numero <b>uguale o più grande di ${f0(D.G)}</b>.`,target:D=>({r:PIPE_R.indexOf(D.rimp),c:D.pipeIdx}),help:D=>`Leggi i numeri da sinistra: il primo che supera ${f0(D.G)} indica il tubo.`,show:D=>`È ${D.pipeP.g[PIPE_R.indexOf(D.rimp)].toLocaleString('it-IT')} l/h, nella colonna De ${f1(D.pipeP.de)}.`},
-  {id:'u4',kind:'num',unit:'mm',rowOn:D=>PIPE_R.indexOf(D.rimp),colOn:D=>D.pipeIdx,table:'t7a',q:()=>'Sali in cima a quella colonna: qual è il <b>diametro esterno De</b>?',exp:D=>D.pipeP.de,abs:0.05,help:()=>'È il numero grande in alto nella colonna evidenziata.',show:D=>`De = ${f1(D.pipeP.de)} mm (diametro interno Di = ${f1(D.pipeP.di)} mm)`},
-  {id:'u5',kind:'cell',table:'t7a',click:'cell',colOn:D=>D.pipeIdx,q:D=>`Ora scendi nella colonna De ${f1(D.pipeP.de)} partendo dall’alto: tocca la <b>prima cella</b> con un numero <b>uguale o più grande di ${f0(D.G)}</b>.`,target:D=>({r:D.rRow,c:D.pipeIdx}),help:()=>'Così trovi la perdita vera del tuo tubo, che è più bassa di 12.',show:D=>`È la riga r = ${D.r}.`},
-  {id:'u6',kind:'num',unit:'mm c.a./m',table:'t7a',rowOn:D=>D.rRow,colOn:D=>D.pipeIdx,q:()=>'Leggi a sinistra di quella riga: quanto vale la <b>perdita r</b> del tuo tubo?',exp:D=>D.r,abs:0.01,help:()=>'È il numero nella prima colonna, sulla riga evidenziata.',show:D=>`r = ${D.r} mm c.a. per metro`}],
+  {id:'u2',kind:'cell',table:'t7a',click:'row',q:()=>'Nella <b>prima colonna</b> (r) cerco la riga <b>12</b>.',target:D=>({r:PIPE_R.indexOf(D.rimp),c:-1}),help:()=>'La prima colonna va da 2 in giù: 2, 4, 6, 8, 10, 12…',show:()=>'È la riga r = 12 mm c.a./m.'},
+  {id:'u3',kind:'cell',thr:D=>D.G,table:'t7a',click:'cell',rowOn:D=>PIPE_R.indexOf(D.rimp),q:D=>`Resto sulla riga 12 e vado verso destra: mi fermo alla <b>prima cella</b> con un numero <b>uguale o più grande di ${f0(D.G)}</b>.`,target:D=>({r:PIPE_R.indexOf(D.rimp),c:D.pipeIdx}),help:D=>`Leggi i numeri da sinistra: il primo che supera ${f0(D.G)} indica il tubo.`,show:D=>`È ${D.pipeP.g[PIPE_R.indexOf(D.rimp)].toLocaleString('it-IT')} l/h, nella colonna De ${f1(D.pipeP.de)}.`},
+  {id:'u4',kind:'read',readAt:D=>[-1,D.pipeIdx],rowOn:D=>PIPE_R.indexOf(D.rimp),colOn:D=>D.pipeIdx,table:'t7a',q:()=>'Salgo in cima a quella colonna e leggo il <b>diametro esterno De</b>.',help:()=>'È il numero grande in alto nella colonna evidenziata.',show:D=>`De = ${f1(D.pipeP.de)} mm (diametro interno Di = ${f1(D.pipeP.di)} mm)`},
+  {id:'u5',kind:'cell',thr:D=>D.G,table:'t7a',click:'cell',colOn:D=>D.pipeIdx,q:D=>`Ora scendo nella colonna De ${f1(D.pipeP.de)} partendo dall’alto: mi fermo alla <b>prima cella</b> con un numero <b>uguale o più grande di ${f0(D.G)}</b>.`,target:D=>({r:D.rRow,c:D.pipeIdx}),help:()=>'Così trovi la perdita vera del tuo tubo, che è più bassa di 12.',show:D=>`È la riga r = ${D.r}.`},
+  {id:'u6',kind:'read',readAt:D=>[D.rRow,-1],table:'t7a',rowOn:D=>D.rRow,colOn:D=>D.pipeIdx,q:()=>'Leggo a sinistra di quella riga la <b>perdita r</b> del tubo.',help:()=>'È il numero nella prima colonna, sulla riga evidenziata.',show:D=>`r = ${D.r} mm c.a. per metro`}],
  gives:D=>[['Materiale','acciaio non zincato'],['Tubo',`De ${f1(D.pipeP.de)} / Di ${f1(D.pipeP.di)} mm`],['Perdita r',D.r+' mm c.a./m'],['Tubo totale',D.Ltot?D.Ltot+' m':'-']],
  figs:[{n:'Tabella 1',f:D=>figTab7A(D,!done('u6'))},{n:'Il tubo in 3D',f:D=>done('u6')?figTube3D(D,true):figTab7A(D,true)}]},
 
@@ -81,22 +81,22 @@ const STEPS=[
  uses:D=>[['Diametro tubo',`De ${f1(D.pipeP.de)} mm`]],
  tasks:[
   {id:'i1',kind:'pick',key:'insMat',q:()=>'Scegli l’isolante (il λ lo trovi sulla sua scheda):',opts:()=>Object.entries(INS_MAT).map(([k,m])=>[k,m.n,`λ = ${f3(m.l)}`]),help:()=>'Va bene qualsiasi isolante: cambia solo il λ.'},
-  {id:'i2',kind:'cell',table:'dpr',click:'row',q:D=>`Tabella 2: tocca la riga di <b>λ = ${f3(D.lam)}</b>. Se non c’è, prendi la riga <b>subito più grande</b>.`,target:D=>({r:D.lamRow,c:-1}),help:D=>`I valori vanno a passi di 0,002: ${f3(D.lam)} sta tra due righe? Scegli quella più grande.`,show:D=>`Riga λ = ${f3(INS_L[D.lamRow])}`},
-  {id:'i3',kind:'cell',table:'dpr',click:'cell',rowOn:D=>D.lamRow,q:D=>`Sulla stessa riga tocca la colonna del tuo tubo: De ${f1(D.pipeP.de)} mm sta nella colonna <b>${INS_C[D.insCol]}</b>.`,target:D=>({r:D.lamRow,c:D.insCol}),help:()=>'Le colonne sono intervalli di diametro esterno del tubo.',show:D=>`Lo spessore minimo è ${D.insTab} mm.`},
-  {id:'i4',kind:'num',unit:'mm',q:D=>`La tabella dà ${D.insTab} mm. Gli isolanti si vendono negli spessori ${INS_COMM.slice(0,8).join(', ')}… Quale prendi?`,exp:D=>D.insComm,abs:0.01,help:()=>'Il primo spessore in commercio uguale o più grande.',show:D=>`Spessore commerciale ${D.insComm} mm`},
-  {id:'i5',kind:'cell',table:'tab9',click:'row',q:D=>`Tabella 3: tocca la riga del tuo tubo, <b>De ${f1(D.pipeP.de)}</b>.`,target:D=>({r:TAB9_DE.indexOf(D.pipeP.de),c:-1}),help:()=>'La prima colonna elenca i diametri esterni.',show:D=>`Riga De ${f1(D.pipeP.de)}`},
-  {id:'i6',kind:'cell',table:'tab9',click:'cell',rowOn:D=>TAB9_DE.indexOf(D.pipeP.de),q:D=>`Sulla stessa riga tocca la colonna dello spessore <b>${D.insComm} mm</b>.`,target:D=>({r:TAB9_DE.indexOf(D.pipeP.de),c:D.tab9Col}),help:()=>'In alto ci sono gli spessori dell’isolante.',show:D=>`${f3(D.Sext)} m² per metro`},
-  {id:'i7',kind:'num',unit:'m²/m',abs:0.0015,q:()=>'Quanto vale la <b>superficie esterna</b> di 1 m di tubo isolato?',exp:D=>D.Sext,help:()=>'È il numero nella cella che hai toccato.',show:D=>`${f3(D.Sext)} m² per ogni metro di tubo`}],
+  {id:'i2',kind:'cell',table:'dpr',click:'row',q:D=>`Tabella 2: cerco la riga di <b>λ = ${f3(D.lam)}</b>. Se non c’è, prendo la riga <b>subito più grande</b>.`,target:D=>({r:D.lamRow,c:-1}),help:D=>`I valori vanno a passi di 0,002: ${f3(D.lam)} sta tra due righe? Scegli quella più grande.`,show:D=>`Riga λ = ${f3(INS_L[D.lamRow])}`},
+  {id:'i3',kind:'cell',table:'dpr',click:'cell',rowOn:D=>D.lamRow,q:D=>`Sulla stessa riga vado alla colonna del tubo: De ${f1(D.pipeP.de)} mm sta nella colonna <b>${INS_C[D.insCol]}</b>.`,target:D=>({r:D.lamRow,c:D.insCol}),help:()=>'Le colonne sono intervalli di diametro esterno del tubo.',show:D=>`Lo spessore minimo è ${D.insTab} mm.`},
+  {id:'i4',kind:'list',list:()=>INS_COMM.slice(0,9),thr:D=>D.insTab,unit:'mm',q:D=>`La tabella dà ${D.insTab} mm. Tra gli spessori in commercio prendo il primo <b>uguale o più grande</b>.`,help:()=>'Il primo spessore in commercio uguale o più grande.',show:D=>`Spessore commerciale ${D.insComm} mm`},
+  {id:'i5',kind:'cell',table:'tab9',click:'row',q:D=>`Tabella 3: cerco la riga del tubo, <b>De ${f1(D.pipeP.de)}</b>.`,target:D=>({r:TAB9_DE.indexOf(D.pipeP.de),c:-1}),help:()=>'La prima colonna elenca i diametri esterni.',show:D=>`Riga De ${f1(D.pipeP.de)}`},
+  {id:'i6',kind:'cell',table:'tab9',click:'cell',rowOn:D=>TAB9_DE.indexOf(D.pipeP.de),q:D=>`Sulla stessa riga vado alla colonna dello spessore <b>${D.insComm} mm</b>.`,target:D=>({r:TAB9_DE.indexOf(D.pipeP.de),c:D.tab9Col}),help:()=>'In alto ci sono gli spessori dell’isolante.',show:D=>`${f3(D.Sext)} m² per metro`},
+  {id:'i7',kind:'read',table:'tab9',readAt:D=>[TAB9_DE.indexOf(D.pipeP.de),D.tab9Col],rowOn:D=>TAB9_DE.indexOf(D.pipeP.de),colOn:D=>D.tab9Col,q:()=>'Leggo nella cella la <b>superficie esterna</b> di 1 m di tubo isolato.',help:()=>'È il numero nella cella che hai toccato.',show:D=>`${f3(D.Sext)} m² per ogni metro di tubo`}],
  gives:D=>[['Isolante',D.im.n],['Spessore',D.insComm+' mm'],['Superficie esterna',f3(D.Sext)+' m²/m']],
  figs:[{n:'Tabella 2',f:D=>figDPR(D,!done('i4'))},{n:'Tabella 3',f:D=>figTab9(D,!done('i7'))},{n:'Il tubo isolato',f:D=>figTube3D(D,true)}]},
 
-{id:'gelo',grp:'Le tabelle',t:'L’antigelo',need:['Tp'],
+{id:'gelo',grp:'Le tabelle',block:D=>D.Tprot!=null&&!D.gOk?`Nessuna concentrazione della tabella protegge fino a ${D.Tprot} °C: controlla la temperatura di progetto nella fase “La casa e il luogo”.`:'',t:'L’antigelo',need:['Tp'],
  tutor:D=>({msg:'D’inverno l’acqua nei pannelli non deve gelare. Aggiungiamo glicole: scegliamo quanto.',dove:'Tabella della concentrazione del glicole (manuale o scheda del fluido).',perche:'Di notte il pannello si raffredda più dell’aria. Per sicurezza si protegge fino a 10 °C sotto la temperatura di progetto.'}),
  uses:D=>[['T di progetto',D.Tp+' °C']],
  tasks:[
   {id:'a1',kind:'pick',key:'gtype',q:()=>'Che glicole usi?',opts:()=>[['propilenico','Propilenico','non tossico'],['etilico','Etilico','tossico']],help:()=>'Con l’acqua sanitaria in casa è meglio quello non tossico.'},
-  {id:'a2',kind:'num',unit:'°C',abs:0.01,q:D=>`Fino a che temperatura proteggi? <b>${D.Tp} − 10</b>`,exp:D=>D.Tprot,help:()=>'Togli 10 alla temperatura di progetto. Attenzione ai segni meno.',show:D=>`${D.Tp} − 10 = ${D.Tprot} °C`},
-  {id:'a3',kind:'cell',table:'gly',click:'row',q:D=>`Nella tabella tocca la <b>prima concentrazione</b> che protegge fino a <b>${D.Tprot} °C</b> o più in basso.`,target:D=>({r:GLICOLE[D.gtype].pts.findIndex(([p])=>p===D.gMin),c:-1}),help:()=>'Scendi finché la temperatura è uguale o più fredda di quella richiesta.',show:D=>`${D.gMin}%, protegge fino a ${D.Tg} °C`}],
+  {id:'a2',kind:'num',unit:'°C',abs:0.01,q:D=>`Temperatura da cui proteggere il circuito: <b>${D.Tp} − 10</b>`,exp:D=>D.Tprot,help:()=>'Togli 10 alla temperatura di progetto. Attenzione ai segni meno.',show:D=>`${D.Tp} − 10 = ${D.Tprot} °C`},
+  {id:'a3',kind:'cell',table:'gly',click:'row',q:D=>`Nella tabella scendo fino alla <b>prima concentrazione</b> che protegge fino a <b>${D.Tprot} °C</b> o più in basso.`,target:D=>({r:GLICOLE[D.gtype].pts.findIndex(([p])=>p===D.gMin),c:-1}),help:()=>'Scendi finché la temperatura è uguale o più fredda di quella richiesta.',show:D=>`${D.gMin}%, protegge fino a ${D.Tg} °C`}],
  gives:D=>[['Glicole',`${GLICOLE[D.gtype].n} ${D.gpct}%`],['Protezione',D.Tg+' °C'],['Fattore perdite',f2(D.fg)]],
  figs:[{n:'Curva del glicole',f:D=>figGlycol(D,!done('a3'))}]},
 
@@ -106,7 +106,7 @@ const STEPS=[
  uses:D=>[['Portata',f0(D.G)+' l/h'],['r del tubo',D.r+' mm/m'],['Tubo totale',D.Ltot+' m'],['Fattore glicole',f2(D.fg)]],
  tasks:[
   {id:'h1',kind:'num',unit:'mm c.a.',q:D=>`Perdite nei tubi: <b>r × lunghezza = ${D.r} × ${D.Ltot}</b>`,exp:D=>D.Hcont,help:()=>'La lunghezza è andata più ritorno.',show:D=>`${D.r} × ${D.Ltot} = ${f0(D.Hcont)} mm c.a.`},
-  {id:'h2',kind:'num',unit:'mm c.a.',tol:0.06,abs:1,q:D=>`Curve, valvole e raccordi: aggiungi il <b>30%</b> di ${f0(D.Hcont)}.`,exp:D=>D.Hloc,help:()=>'Moltiplica per 0,3.',show:D=>`${f0(D.Hcont)} × 0,3 = ${f0(D.Hloc)} mm c.a.`},
+  {id:'h2',kind:'num',unit:'mm c.a.',tol:0.06,abs:1,q:D=>`Curve, valvole e raccordi valgono il 30% delle perdite nei tubi: <b>${f0(D.Hcont)} × 0,3</b>`,exp:D=>D.Hloc,help:()=>'Moltiplica per 0,3.',show:D=>`${f0(D.Hcont)} × 0,3 = ${f0(D.Hloc)} mm c.a.`},
   {id:'h3',kind:'num',unit:'mm c.a.',tol:0.05,abs:0.6,q:D=>D.conn==='serie'?`Pannelli in serie: <b>${D.per} × ${f0(D.P.Hp)} × (${f0(D.Gline)} / ${f0(D.P.Gp)})²</b>`:`Pannelli in parallelo: ognuno ha la sua portata. <b>${f0(D.P.Hp)} × (${f1(D.Gp)} / ${f0(D.P.Gp)})²</b>`,exp:D=>D.Hfield,help:()=>'Se la portata cambia, la perdita cambia col quadrato.',show:D=>`${f0(D.Hfield)} mm c.a.`},
   {id:'h4',kind:'num',unit:'mm c.a.',tol:0.04,abs:3,q:D=>`Prevalenza totale: <b>(${f0(D.Hcont)} + ${f0(D.Hloc)} + ${f0(D.Hfield)}) × ${f2(D.fg)} + ${f0(D.Hsc)}</b>`,exp:D=>D.Htot,help:()=>'Prima la somma tra parentesi, poi per il fattore del glicole, infine aggiungi lo scambiatore.',show:D=>`${f0(D.Htot)} mm c.a. = ${f2(D.Htot/1000)} m c.a.`}],
  gives:D=>[['Portata pompa',f3(D.G/1000)+' m³/h'],['Prevalenza',f2(D.Htot/1000)+' m c.a.']],
@@ -121,8 +121,8 @@ const STEPS=[
  gives:D=>[['Potenza',`${f0(D.Q)} kcal/h = ${f2(D.QkW)} kW`],['Temperature','solare 50→40 °C · serbatoio 35→45 °C']],
  figs:[{n:'Scambiatore a piastre',f:D=>figHX(D,true)}]},
 
-{id:'vaso',grp:'I componenti',t:'Vaso e valvola di sicurezza',need:['A','regione','prov','Lone'],
- tutor:D=>({msg:'Il vaso di espansione accoglie il liquido che si dilata col caldo. Facciamo il conto in sei passi brevi.',dove:'Litri nei pannelli: scheda tecnica. Litri nei tubi: diametro interno dalla Tabella 1. Litri nello scambiatore: sua scheda.',perche:'Quando i pannelli sono fermi al sole il liquido può bollire: il vaso deve contenere anche tutto il liquido dei pannelli.'}),
+{id:'vaso',grp:'I componenti',block:D=>D.Pf<=D.Pi?`Con ${f1(D.Hst)} m di altezza la pressione iniziale (${f1(D.Pi)} bar) non è più bassa di quella finale (${f1(D.Pf)} bar): scegli la valvola da 6 bar o controlla l’altezza.`:'',t:'Vaso e valvola di sicurezza',need:['A','regione','prov','Lone'],
+ tutor:D=>({msg:'Il vaso di espansione accoglie il liquido che si dilata col caldo. Facciamo il conto insieme, un passo alla volta.',dove:'Litri nei pannelli: scheda tecnica. Litri nei tubi: diametro interno dalla Tabella 1. Litri nello scambiatore: sua scheda.',perche:'Quando i pannelli sono fermi al sole il liquido può bollire: il vaso deve contenere anche tutto il liquido dei pannelli.'}),
  form:D=>`<div class="g2">${numf('Hst','Altezza dal vaso al punto più alto','m',1,40,0.5,`stima: ${f1(D.HstSug)} m`)}${numf('Vsc','Litri nello scambiatore','l',0,200,0.5,`stima: ${Math.round(D.Snet*2.5)} l`)}</div>`,
  uses:D=>[['Pannelli',`${D.N} × ${f1(D.P.vol)} l`],['Tubo',`Di ${f1(D.pipeP.di)} mm · ${D.Ltot} m`]],
  tasks:[
@@ -133,7 +133,7 @@ const STEPS=[
   {id:'v4',kind:'num',unit:'l',tol:0.03,abs:0.2,q:D=>`Volume utile: <b>Vu = (${f1(D.Vc)} × 0,07 + ${f1(D.VP)}) × 1,1</b>`,exp:D=>D.Vu,help:()=>'0,07 è la dilatazione dell’acqua con glicole, 1,1 è un margine di sicurezza.',show:D=>`Vu = ${f1(D.Vu)} l`},
   {id:'v5',kind:'num',unit:'bar',abs:0.06,q:D=>`Pressione iniziale: <b>Pi = ${f1(D.Hst)} / 10,2 + 0,5</b>`,exp:D=>D.Pi,help:()=>'10,2 metri d’acqua fanno 1 bar.',show:D=>`Pi = ${f1(D.Pi)} bar`},
   {id:'v6',kind:'num',unit:'l',tol:0.05,abs:0.4,q:D=>`Volume del vaso: <b>Vn = ${f1(D.Vu)} × (${f1(D.Pf)} + 1) / (${f1(D.Pf)} − ${f1(D.Pi)})</b> (Pf = ${f1(D.Pvs)} − 0,5)`,exp:D=>D.Vn,show:D=>`Vn = ${f1(D.Vn)} l`},
-  {id:'v7',kind:'pick',key:'_vaso',q:D=>`Vasi in commercio: quale scegli per ${f1(D.Vn)} l?`,opts:D=>VASI_COMM.slice(0,7).map(v=>[v,v+' l']),correct:D=>D.vaso,help:()=>'Il primo uguale o più grande.',bad:()=>'No: deve essere il primo vaso uguale o più grande del valore calcolato.'}],
+  {id:'v7',kind:'list',list:()=>VASI_COMM.slice(0,8),thr:D=>D.Vn,unit:'l',q:D=>`Tra i vasi in commercio prendo il primo <b>uguale o più grande</b> di ${f1(D.Vn)} l.`,show:D=>`Vaso da ${D.vaso} l`}],
  gives:D=>[['Vaso',`${D.vaso} l, precarica ${f1(D.Pi)} bar`],['Valvola',`${f1(D.Pvs)} bar + tanica`]],
  figs:[{n:'Il vaso al lavoro',f:D=>figVaso3(D,120,true)},{n:'Valvola di sicurezza',f:D=>figValve(D,true)}]},
 
@@ -143,7 +143,7 @@ const STEPS=[
  tasks:[
   {id:'s0',kind:'pick',key:'kV',q:()=>'Quanti litri per m² usi?',opts:()=>[[50,'50 l/m²'],[55,'55 l/m²'],[60,'60 l/m²']]},
   {id:'s1',kind:'num',unit:'litri',tol:0.02,abs:1,q:D=>`Volume: <b>V = ${D.kV} × ${f2(D.Snet)}</b>`,exp:D=>D.Vcalc,show:D=>`V = ${f0(D.Vcalc)} l`},
-  {id:'s2',kind:'pick',key:'_tank',q:D=>`Taglie in commercio: quale scegli per ${f0(D.Vcalc)} l?`,opts:D=>SERBATOI_COMM.slice(1,9).map(v=>[v,v+' l']),correct:D=>D.Vtank,bad:()=>'No: il primo serbatoio uguale o più grande.'},
+  {id:'s2',kind:'list',list:()=>SERBATOI_COMM.slice(0,9),thr:D=>D.Vcalc,unit:'l',q:D=>`Tra le taglie in commercio prendo il primo serbatoio <b>uguale o più grande</b> di ${f0(D.Vcalc)} l.`,show:D=>`Serbatoio da ${D.Vtank} l`},
   {id:'s3',kind:'pick',key:'tank',q:()=>'Che tipo di serbatoio?',opts:()=>[['ss','Semplice serpentino','accumulo solare'],['ds','Doppio serpentino','solare + caldaia'],['tit','Tank in tank','riscaldamento + ACS']]}],
  gives:D=>[['Serbatoio',`${D.Vtank} l`],['Tipo',D.tankName]],
  figs:[{n:'Il serbatoio',f:D=>figTank3(D,true)}]},

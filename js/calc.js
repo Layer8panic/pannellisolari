@@ -32,7 +32,7 @@ function compute(){
   D.qsp=40;D.Gp=D.qsp*D.Aref;D.G=D.Gp*D.N;D.Gline=D.G/D.lines;
   // Tabella 7A: riga r imposta, primo tubo con portata >= G; poi r reale = riga dove la colonna supera G
   D.rimp=S.rimp||12;const ri=PIPE_R.indexOf(D.rimp);
-  D.pipeIdx=PIPES.findIndex(p=>p.g[ri]!=null&&p.g[ri]>=D.G);if(D.pipeIdx<0)D.pipeIdx=PIPES.length-1;D.pipeP=PIPES[D.pipeIdx];
+  D.pipeIdx=PIPES.findIndex(p=>p.g[ri]!=null&&p.g[ri]>=D.G);D.pipeOver=D.pipeIdx<0||D.pipeIdx>8;if(D.pipeIdx<0)D.pipeIdx=PIPES.length-1;D.pipeP=PIPES[D.pipeIdx];
   D.rRow=D.pipeP.g.findIndex(g=>g!=null&&g>=D.G);if(D.rRow<0)D.rRow=PIPE_R.length-1;D.r=PIPE_R[D.rRow];
   D.pipe={p:D.pipeP,r:D.r,v:vel(D.G,D.pipeP.di)};
   D.Lone=isNull(S.Lone)?null:+S.Lone;D.Ltot=D.Lone==null?0:2*D.Lone;
