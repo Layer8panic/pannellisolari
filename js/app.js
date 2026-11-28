@@ -123,7 +123,7 @@ function refreshDyn(){
       else h+=`<div class="task next">Passo ${i+1} · ${{num:'un calcolo da fare tu',cell:'una ricerca in tabella',read:'una lettura in tabella',list:'una misura in commercio',pick:t.lampo?'una verifica lampo':'una domanda per te'}[t.kind]}</div>`});
     h+='</div>';
     if(tasksDone(st)&&st.mine&&!blk)h+=mineHTML(st)}
-  if(st.paper&&!om.length)h+=`<details class="paper card" ${S.paperOpen?'open':''}><summary>✍️ Rifallo da solo su carta e penna</summary><ol>${safe(()=>st.paper(D),[]).map(x=>`<li>${x}</li>`).join('')}</ol><p class="hint">Prova a rifare la fase sul quaderno senza guardare lo schermo, poi controlla qui i risultati.</p></details>`;
+  if(st.paper&&!om.length)h+=`<details class="paper card" ${S.paperOpen?'open':''}><summary>✍️ Rifallo su carta e penna</summary><ol>${safe(()=>st.paper(D),[]).map(x=>`<li>${x}</li>`).join('')}</ol><p class="hint">Rifai la fase sul quaderno senza guardare lo schermo, poi confronta i risultati con quelli qui.</p></details>`;
   const gv=st.gives&&!blk&&!om.length?safe(()=>st.gives(D),null):null;
   if(gv&&stepDone(st))h+=`<div class="result"><h4>✔ Risultato di questa fase</h4><div class="rg">${gv.map(([a,b])=>`<div><small>${a}</small><b>${b}</b></div>`).join('')}</div></div>`;
   const ae=document.activeElement,aeSel=ae&&ae.dataset&&(ae.dataset.slot?`[data-slot="${ae.dataset.slot}"]`:ae.dataset.res?`[data-res="${ae.dataset.res}"]`:ae.dataset.mine?'[data-mine]':null);
@@ -133,7 +133,7 @@ function refreshDyn(){
 }
 function doneTask(t){const s=S.tk[t.id]||{};let ans='';
   if(t.kind==='pick'){const o=safe(()=>t.opts(D),[]).find(([v])=>String(v)===String(s.v));ans=o?o[1]:'';if(t.ok&&o)ans+=`<span class="why">${t.ok(D)}</span>`}else if(t.show)ans=safe(()=>t.show(D),'');else if(t.kind==='list')ans=listPick(t)+' '+(t.unit||'');
-  return `<div class="task done ${s.helped?'helped':''} ${t.lampo?'lampo':''}"><span class="ck">✔</span><div style="flex:1;min-width:0"><div>${strip(t.q(D))}</div>${ans?`<div class="ans">${ans}</div>`:''}${s.helped?'<div class="hl">fatto con l’aiuto di Archimede: rifallo da solo sul quaderno</div>':''}</div>${t.kind==='pick'||t.kind==='num'?`<button class="btn sm ghost" data-tundo="${t.id}">${t.kind==='num'?'Rifai':'Cambia'}</button>`:''}</div>`}
+  return `<div class="task done ${s.helped?'helped':''} ${t.lampo?'lampo':''}"><span class="ck">✔</span><div style="flex:1;min-width:0"><div>${strip(t.q(D))}</div>${ans?`<div class="ans">${ans}</div>`:''}${s.helped?'<div class="hl">svolto con il procedimento guidato: da ripetere sul quaderno</div>':''}</div>${t.kind==='pick'||t.kind==='num'?`<button class="btn sm ghost" data-tundo="${t.id}">${t.kind==='num'?'Rifai':'Cambia'}</button>`:''}</div>`}
 function listPick(t){const thr=t.thr(D),L=t.list(D);return L.find(v=>v>=thr-1e-9)??L[L.length-1]}
 function tblFor(t){return TABLES[t.table](D,{rowOn:t.rowOn?t.rowOn(D):undefined,colOn:t.colOn?t.colOn(D):undefined})}
 function symHTML(t,mode){const sl=t.slots(D),s=S.tk[t.id]||{},sv=s.sv||{};
@@ -155,12 +155,12 @@ function curTask(t,i,n){const s=tkS(t.id);let body='';const miss=s.miss||0;
       <div class="tact"><button class="btn" data-chkslots="${t.id}">Controlla i numeri</button></div>`;if(s.smsg)body+=`<div class="fb no">${s.smsg}</div>`}
     if(stg===2){body+=`<div class="board static"><div class="l1">${symHTML(t,'val')}</div></div><p class="sq">Ora fai il conto (anche con la calcolatrice) e scrivi il risultato.</p>
       <div class="resrow"><input class="resin ${s.rmsg?'err':''}" data-res="${t.id}" inputmode="decimal" autocomplete="off" maxlength="14" value="${xesc(s.rv||'')}" placeholder="risultato"><span class="u">${t.unit}</span><button class="btn" data-chkres="${t.id}">Controlla</button></div>
-      ${s.rmsg?`<div class="fb no">${s.rmsg}</div>`:''}${(s.tries||0)>=3?`<div class="tact"><button class="btn sm ghost" data-showcalc="${t.id}">👀 Fammi vedere il conto</button></div>`:''}`}
+      ${s.rmsg?`<div class="fb no">${s.rmsg}</div>`:''}${(s.tries||0)>=3?`<div class="tact"><button class="btn sm ghost" data-showcalc="${t.id}">👀 Mostrami il conto svolto</button></div>`:''}`}
     if(stg===3)body+=`<div class="board" id="bd-${t.id}"></div>`}
   if(t.kind==='cell'||t.kind==='read')body=`<div class="tblwrap" id="tb-${t.id}" data-tclick="${t.id}">${tblFor(t)}</div><div class="narr ${s.msg?'no':''}" id="nr-${t.id}">${s.msg||'👆 Tocca tu la cella giusta nella tabella.'}</div><div class="tact">${showBtn('Mostrami come si fa')}</div>`;
   if(t.kind==='list')body=`<div class="chips" id="ls-${t.id}">${t.list(D).map(v=>`<button class="chipv" data-chip="${t.id}" data-v="${v}">${fmt(v,0)} ${t.unit||''}</button>`).join('')}</div><div class="narr ${s.msg?'no':''}" id="nr-${t.id}">${s.msg||`Valore da raggiungere: <b>${fmt(t.thr(D),1)} ${t.unit||''}</b>. Tocca la misura giusta.`}</div><div class="tact">${showBtn('Mostrami')}</div>`;
   if(t.kind==='pick'){const OP=t.correct?shuf(t.opts(D),t.id):t.opts(D);body=`<div class="opts ${t.lampo?'lampo':''}">${OP.map(([v,l,sm])=>`<button class="opt ${String(s.v)===String(v)?'sel':''}" data-topt="${t.id}" data-val="${xesc(v)}">${l}${sm?`<small>${sm}</small>`:''}</button>`).join('')}</div>`;
-    if(s.v!=null&&!taskOk(t))body+=`<div class="fb no">${t.bad?t.bad(D):'Non è la scelta giusta, riprova.'}</div>`;
+    if(s.v!=null&&!taskOk(t))body+=`<div class="fb no">${t.bad?t.bad(D):'Non è questa: riprova.'}</div>`;
     if(s.help&&t.help)body+=`<div class="fb help">💡 ${t.help(D)}</div>`;
     if(t.help)body+=`<div class="tact"><button class="btn sm ghost" data-thelp="${t.id}">💡 ${s.help?'Nascondi l’aiuto':'Aiutami a ragionare'}</button></div>`}
   return `<div class="task cur ${t.lampo?'lampo':''}" id="cur-${t.id}"><span class="tn">Passo ${i+1} di ${n}</span><div class="tq">${t.q(D)}</div>${body}</div>`}
@@ -248,7 +248,7 @@ function checkRes(id){const t=findTask(id);if(!t)return;const s=tkS(id),v=parseN
   if(tr)s.rmsg=tr[1];else if(v!==0&&(Math.abs(v*1000-exp)<=tol*1.5||Math.abs(v/1000-exp)<=tol*1.5||Math.abs(v*10-exp)<=tol*1.5||Math.abs(v/10-exp)<=tol*1.5))s.rmsg='Le cifre sono giuste ma la virgola è nel posto sbagliato: controlla le unità di misura e le divisioni.';
   else if(s.tries===1)s.rmsg='Non torna. Rifai il conto con calma: prima parentesi e potenze, poi moltiplicazioni e divisioni, infine le somme.';
   else s.rmsg=t.mid?'💡 '+t.mid(D):'Ricontrolla il conto un pezzo alla volta.';
-  if(s.tries>=3)s.rmsg+=' Se sei bloccato puoi guardare il conto, poi rifallo sul quaderno.';
+  if(s.tries>=3)s.rmsg+=' Se vuoi, puoi vedere il conto svolto e poi ripeterlo sul quaderno.';
   refreshDyn();shake($('#cur-'+id))}
 function cellClick(t,el){const s=tkS(t.id),[r,c]=el.dataset.pos.split(',').map(Number),g=cellTarget(t),val=el.textContent.trim(),thr=t.thr?t.thr(D):null;
   const ok=t.click==='row'?r===g.r&&r>=0:r===g.r&&c===g.c;
@@ -259,7 +259,7 @@ function cellClick(t,el){const s=tkS(t.id),[r,c]=el.dataset.pos.split(',').map(N
   else if(t.colOn&&!t.rowOn){if(c!==g.c)m='Resta nella colonna evidenziata.';else if(thr!=null&&!isNaN(vn)&&r>=0){m=vn<thr?`${val} è meno di ${f0(thr)}: scendi ancora.`:`${val} basta, ma più in alto ce n’è una che basta già: prendi la prima dall’alto.`}else m=r<g.r?'Scendi ancora.':'Sei sceso troppo.'}
   else if(t.click==='row')m=r<0?'Questa è l’intestazione: tocca una riga.':t.help(D);
   else m=t.help(D);
-  if(s.miss>=3)m+=' Se vuoi, guarda come si fa e poi rifallo da solo.';s.msg='✘ '+m;
+  if(s.miss>=3)m+=' Se vuoi, guarda il procedimento e poi ripetilo.';s.msg='✘ '+m;
   el.classList.add('wrongc');setTimeout(()=>el.classList.remove('wrongc'),700);const nr=$('#nr-'+t.id);nr.innerHTML=s.msg;nr.classList.add('no');shake(nr);
   if(s.miss===3)refreshDyn();else save()}
 function chipClick(t,el){const s=tkS(t.id),v=+el.dataset.v,pick=listPick(t),thr=t.thr(D);
@@ -281,7 +281,7 @@ function reportUI(){const L=makeLayout(),todo=STEPS.filter(s=>!s.report&&!stepDo
   return `<div class="rep"><div class="card"><h4 style="margin-top:0">Copertina</h4><div class="g2">${txt('nome','Nome')}${txt('cognome','Cognome')}</div><div class="g2">${txt('classe','Classe')}${txt('docente','Docente di riferimento')}</div>
    <h4>Fasi completate</h4><ul class="checklist">${STEPS.filter(s=>!s.report).map(s=>`<li><i style="color:${stepDone(s)?'#14965c':'#d98a0b'}">${stepDone(s)?'✔':'•'}</i><span>${s.t}</span></li>`).join('')}</ul>
    ${ok?'<div class="note green">Tutte le fasi sono fatte: la relazione è pronta.</div>':`<div class="note red">Mancano ${todo.length} fasi: torna a “${todo[0].t}”.</div>`}
-   ${helped?`<div class="note">Hai usato l’aiuto in ${helped} passi. Prima della verifica rifalli sul quaderno con la scheda di allenamento.</div>`:''}
+   ${helped?`<div class="note">In ${helped} passi hai visto il procedimento guidato: ripassali sul quaderno con la scheda di allenamento.</div>`:''}
    <div class="opts" style="margin-top:14px"><button class="btn sun" id="docBtn" ${ok?'':'disabled'}>⬇ Scarica la relazione Word</button><button class="btn" id="trainBtn" ${ok?'':'disabled'}>✍️ Scheda di allenamento</button><button class="btn ghost" id="varBtn2">🎲 Nuova versione</button></div>
    <p class="hint">Versione ${(S.variant||0)+1} · impaginazione: ${layoutName(L)}. La scheda di allenamento ha i tuoi calcoli da rifare a mano e un esercizio nuovo con le soluzioni in fondo: ogni volta che la scarichi i numeri cambiano.</p></div>
    <div class="card"><h4 style="margin-top:0">I tuoi disegni a mano (facoltativi)</h4><p class="hint" style="margin-top:0">Fai i disegni sul quaderno con “Disegna con me”, fotografali e caricali: entrano nella relazione accanto a quelli dell’app.</p>

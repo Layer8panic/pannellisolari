@@ -30,7 +30,7 @@ const INS_L = [0.030,0.032,0.034,0.036,0.038,0.040,0.042,0.044,0.046,0.048,0.050
 const INS_C = ['< 20','20–39','40–59','60–79','80–99','≥ 100'];
 const INS_T = [[13,19,26,33,37,40],[14,21,29,36,40,44],[15,23,31,39,44,48],[17,25,34,43,47,52],[18,28,37,46,51,56],[20,30,40,50,55,60],[22,32,43,54,59,64],[24,35,46,58,63,69],[26,38,50,62,68,74],[28,41,54,66,72,79],[30,44,58,71,77,84]];
 const INS_MAT = {
-  nbr:{n:'Gomma nitrilica (NBR)',l:0.035,tmax:105,d:'Scelta della traccia. Ottima flessibilità, ma regge ~105 °C: va bene sui tratti interni lontani dai collettori.'},
+  nbr:{n:'Gomma nitrilica (NBR)',l:0.035,tmax:105,d:'Isolante più usato. Ottima flessibilità, ma regge ~105 °C: va bene sui tratti interni lontani dai collettori.'},
   epdm:{n:'EPDM alta temperatura',l:0.040,tmax:175,d:'Specifico per il solare: resiste a 150–175 °C, adatto vicino ai collettori dove si arriva in stagnazione.'},
   lana:{n:'Lana di roccia + lamierino',l:0.040,tmax:250,d:'Resiste a temperature altissime, richiede rivestimento rigido (alluminio) per esterno.'},
   pu:{n:'Poliuretano espanso',l:0.030,tmax:110,d:'Molto isolante, ma limite termico basso per il circuito solare.'}
