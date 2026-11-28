@@ -251,3 +251,23 @@ const LAMPO={
  serb:[['Il serbatoio si dimensiona con…',['litri per m² di pannello','litri per pannello','litri per persona'],'La regola pratica è 50 ÷ 60 litri per m² di pannello.']],
  schemi:[['Chi decide quando accendere la pompa solare?',['La centralina differenziale','Il termostato di casa','La valvola di sicurezza'],'Confronta la sonda del pannello con quella del serbatoio.']]};
 for(const st of STEPS){const L=LAMPO[st.id];if(!L)continue;const pre=L.map(([q,o,why],i)=>({id:`L_${st.id}_${i}`,kind:'pick',lampo:true,key:`_L${st.id}${i}`,q:()=>`⚡ Verifica lampo: ${q}`,opts:()=>o.map((t,j)=>['abc'[j],t]),correct:()=>'a',bad:()=>'Non è questa. '+why,ok:()=>why}));st.tasks=[...pre,...(st.tasks||[])]}
+// ===================== COSA TI DEVE GIRARE IN TESTA: il ragionamento da fare in ogni fase, valido per qualsiasi caso =====================
+const METODO=['Cosa mi chiede questa fase? Lo dico con parole mie.','Quali dati ho già? Li scrivo con la loro unità di misura.','Cosa mi manca e dove lo trovo: dati del progetto, scheda tecnica, tabella o fase precedente?','Che formula o che tabella uso, e perché proprio quella?','Faccio il conto e mi chiedo: il risultato è sensato? L’unità di misura è giusta?','Questo risultato a cosa mi servirà nelle fasi dopo?'];
+const TESTA={
+ copertina:['Prima di iniziare guarda tutto il percorso: dati, calcoli, tabelle, componenti, schemi. Ogni fase usa i risultati di quella prima.'],
+ casa:['Quanto è grande la casa? È il dato da cui parte tutto il dimensionamento.','Dove si trova? La zona d’Italia mi dirà quanto sole c’è.','Quanto freddo fa d’inverno? Mi servirà per l’antigelo.'],
+ tetto:['Il tetto guarda verso Sud? Se no, i pannelli rendono meno.','Quanto è inclinato? Va bene se è vicino alla latitudine più 10°.','Quanto spazio ho? Lo controllerò quando metto i pannelli.'],
+ pannello:['Che pannello uso? Dalla scheda tecnica prendo solo quello che serve.','Superficie, litri contenuti, perdita di carico, quanti in fila: dove torna ciascuno di questi numeri?'],
+ numero:['Quanta superficie di pannello serve per questa casa in questa zona?','La tabella mi dà m² di pannello ogni 10 m² di casa: quindi moltiplico e divido per 10.','Quanti pannelli sono? Divido per la superficie di uno e arrotondo per eccesso.','Controllo: N × superficie di un pannello è un po’ più di S?'],
+ posa:['I pannelli ci stanno sul tetto? Confronto le loro misure con quelle della falda.','Verticale o orizzontale, una fila o più: cosa cambia per il collegamento?'],
+ portata:['Quanta acqua deve passare in ogni pannello? 40 l/h per ogni m².','E in tutti i pannelli insieme? Moltiplico per N.','Questa portata mi serve subito per scegliere il tubo.'],
+ tubi:['Di che materiale faccio il tubo, viste le temperature del solare?','Nella Tab. 7A cerco la mia portata sulla riga r = 12: il primo tubo che la porta.','Poi scendo nella colonna per trovare la perdita r vera.','Quanti metri di tubo ho in tutto, andata e ritorno?'],
+ isola:['Quanto isolante serve? Dipende da λ dell’isolante e dal diametro del tubo.','La Legge 10 mi dà lo spessore minimo, poi prendo quello in commercio.','Quanta superficie di rivestimento serve? Tab. 9 per metro, poi moltiplico per i metri.'],
+ gelo:['Qual è la notte più fredda? Proteggo 10 °C sotto, per sicurezza.','Quanto glicole basta, senza esagerare? Più glicole vuol dire più fatica per la pompa.'],
+ pompa:['Quali resistenze deve vincere la pompa? Tubi, curve, pannelli, scambiatore.','Le calcolo una alla volta e poi le sommo.','Il glicole aumenta le perdite: dove lo metto nella formula?','Per il catalogo mi servono due numeri: portata e prevalenza.'],
+ scamb:['Quanto calore arriva dai pannelli? 400 kcal/h per ogni m² installato.','In che unità lo voglio? kW: divido per 860.'],
+ vaso:['Quanti litri ci sono nel circuito? Pannelli più tubi più scambiatore.','Quanto si dilatano? Il 7%, più tutto il liquido dei pannelli che può andare in vapore.','A che pressioni lavora il vaso? Pi dall’altezza, Pf sotto la valvola.','Il vaso calcolato non è in commercio: prendo quello subito più grande.'],
+ serb:['Quanta acqua calda devo conservare? 50 ÷ 60 litri per m² di pannello.','Che tipo di serbatoio serve per un impianto combinato?'],
+ schemi:['Come gira l’acqua? Mandata calda dai pannelli al serbatoio, ritorno freddo con pompa, vaso e valvola.','Chi accende la pompa? La centralina confronta due temperature.','Cosa succede se il serbatoio è già caldo e c’è ancora sole? Surriscaldamento: chi protegge l’impianto?'],
+ relazione:['Rileggo la relazione: ogni numero ha la sua formula, la sua fonte e la sua unità di misura?','Saprei rifare tutto con carta, penna e le tabelle? Se no, uso la scheda di allenamento.']};
+for(const st of STEPS)if(TESTA[st.id])st.testa=TESTA[st.id];

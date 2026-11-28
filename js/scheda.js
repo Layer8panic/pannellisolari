@@ -14,12 +14,14 @@ function buildTraining(){
   doc.p(`Alunno: **${who}** · Classe: ${S.classe}`);
   doc.p('Questa scheda si fa con carta, penna, calcolatrice e le tabelle del libro. Per ogni calcolo scrivi prima la formula con le lettere, poi la formula con i numeri, poi il risultato con l’unità di misura. Non guardare lo schermo: alla fine controlla con l’app o con le soluzioni.');
   // ---------- parte A ----------
+  doc.h2(`${L.bullet} Il metodo per ogni fase`);doc.num(METODO);
   doc.h1('A. Rifai il tuo progetto');
   doc.p('I dati sono quelli del tuo progetto. Gli spazi vuoti sono da completare a mano.');
   let last='';
   for(const st of STEPS){if(!st.tasks)continue;const ts=st.tasks.filter(t=>t.kind!=='pick'||t.key.startsWith('_'));if(!ts.length)continue;
     doc.h2(`${L.bullet} ${st.t}`);
-    if(st.paper)doc.num(safe(()=>st.paper(D),[]).map(strip));
+    if(st.testa){doc.p('**Cosa ti deve girare in testa:**');doc.bul(st.testa)}
+    if(st.paper){doc.p('**Come procedi:**');doc.num(safe(()=>st.paper(D),[]).map(strip))}
     for(const t of ts){const q=strip(safe(()=>t.q(D),''));
       if(t.kind==='num'){const sl=t.slots(D),keys=slotKeys(t);doc.p(`**${q}**`);doc.cp(`Formula: ${blankLine(28)}`);
         doc.p('Dati: '+keys.map(k=>`${k} = ${blankLine(8)} (${sl[k][2]}, da ${strip(sl[k][3])})`).join('; ')+'.');

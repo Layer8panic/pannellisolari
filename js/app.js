@@ -116,6 +116,7 @@ function refreshDyn(){
   let h='';const om=ownMissing(st),blk=stepBlock(st);
   if(st.id==='pannello'&&cpBad())h+=`<div class="note red">Alcuni dati del pannello non sono validi: correggi i campi in rosso.</div>`;
   if(blk)h+=`<div class="note red"><b>Attenzione.</b> ${blk}</div>`;
+  if(st.testa)h+=testaHTML(st);
   if(st.tasks){const cur=st.tasks.findIndex(t=>!taskOk(t)),nd=st.tasks.filter(taskOk).length;
     h+=`<div class="card"><div class="taskhead"><h4>Passo dopo passo <span class="cnt">${nd}/${st.tasks.length}</span></h4><label class="chk sm"><input type="checkbox" id="fastChk" ${S.fast?'checked':''}> animazioni veloci</label></div><div class="tbar"><i style="width:${nd/st.tasks.length*100}%"></i></div>`;
     st.tasks.forEach((t,i)=>{if(i<cur||cur<0)h+=doneTask(t);
@@ -164,6 +165,7 @@ function curTask(t,i,n){const s=tkS(t.id);let body='';const miss=s.miss||0;
     if(s.help&&t.help)body+=`<div class="fb help">💡 ${t.help(D)}</div>`;
     if(t.help)body+=`<div class="tact"><button class="btn sm ghost" data-thelp="${t.id}">💡 ${s.help?'Nascondi l’aiuto':'Aiutami a ragionare'}</button></div>`}
   return `<div class="task cur ${t.lampo?'lampo':''}" id="cur-${t.id}"><span class="tn">Passo ${i+1} di ${n}</span><div class="tq">${t.q(D)}</div>${body}</div>`}
+function testaHTML(st){const open=S.testaOpen??true;return `<details class="testa card" ${open?'open':''}><summary>🧠 Cosa ti deve girare in testa</summary><ol>${st.testa.map(x=>`<li>${x}</li>`).join('')}</ol>${st.id==='copertina'?`<p class="sq" style="margin-top:10px">Il metodo, in ogni fase e per qualsiasi caso:</p><ol class="metodo">${METODO.map(x=>`<li>${x}</li>`).join('')}</ol>`:''}</details>`}
 function mineHTML(st){const v=S.mine[st.id]||'',e=mineErr(st),w=words(v).length;
   return `<div class="card mine ${e?'':'ok'}"><h4>✍️ Spiegalo con parole tue</h4><p class="sq">${st.mine.q}</p><textarea data-mine="${st.id}" rows="5" maxlength="1200" placeholder="${xesc(st.mine.start)}…">${xesc(v)}</textarea>
    <div class="wc"><span id="mwc">${w} parole</span><span id="merr">${e?'⚠ '+e:'✔ Va bene: questo testo andrà nella tua relazione.'}</span></div></div>`}
@@ -278,7 +280,7 @@ function readPhoto(file){return new Promise((res,rej)=>{if(!file||!/^image\//.te
   const u=URL.createObjectURL(file),img=new Image();img.onload=()=>{const m=1500,sc=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*sc));c.height=Math.max(1,Math.round(img.height*sc));
     const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res({url:c.toDataURL('image/png'),w:c.width,h:c.height})};img.onerror=()=>{URL.revokeObjectURL(u);rej('Non riesco ad aprire questa foto: prova con un JPG o un PNG.')};img.src=u})}
 function reportUI(){const L=makeLayout(),todo=STEPS.filter(s=>!s.report&&!stepDone(s)),ok=!todo.length;const helped=Object.values(S.tk).filter(s=>s&&s.helped).length;
-  return `<div class="rep"><div class="card"><h4 style="margin-top:0">Copertina</h4><div class="g2">${txt('nome','Nome')}${txt('cognome','Cognome')}</div><div class="g2">${txt('classe','Classe')}${txt('docente','Docente di riferimento')}</div>
+  return `<div class="rep">${STEPS[S.step].testa?testaHTML(STEPS[S.step]):''}<div class="card"><h4 style="margin-top:0">Copertina</h4><div class="g2">${txt('nome','Nome')}${txt('cognome','Cognome')}</div><div class="g2">${txt('classe','Classe')}${txt('docente','Docente di riferimento')}</div>
    <h4>Fasi completate</h4><ul class="checklist">${STEPS.filter(s=>!s.report).map(s=>`<li><i style="color:${stepDone(s)?'#14965c':'#d98a0b'}">${stepDone(s)?'✔':'•'}</i><span>${s.t}</span></li>`).join('')}</ul>
    ${ok?'<div class="note green">Tutte le fasi sono fatte: la relazione è pronta.</div>':`<div class="note red">Mancano ${todo.length} fasi: torna a “${todo[0].t}”.</div>`}
    ${helped?`<div class="note">In ${helped} passi hai visto il procedimento guidato: ripassali sul quaderno con la scheda di allenamento.</div>`:''}
@@ -326,7 +328,7 @@ document.addEventListener('change',async e=>{const t=e.target;
     if(k==='regione'){S.prov=null;S.Tp=null;S.coef=null;delete S.bad.Tp}if(k==='prov'&&S.regione&&S.prov&&REGIONI[S.regione].p[S.prov]!=null){S.Tp=REGIONI[S.regione].p[S.prov];delete S.bad.Tp}return render()}
   if(t.dataset.k&&t.type==='checkbox'){S[t.dataset.k]=t.checked;return refreshDyn()}
   if(t.dataset.k&&t.tagName==='INPUT'&&t.dataset.t!=='s'&&t.type!=='range'){clearTimeout(_inT);refreshDyn()}});
-document.addEventListener('toggle',e=>{const t=e.target;if(!t.classList)return;if(t.classList.contains('more')){S.tipsOpen=t.open;save()}if(t.classList.contains('paper')){S.paperOpen=t.open;save()}},true);
+document.addEventListener('toggle',e=>{const t=e.target;if(!t.classList)return;if(t.classList.contains('more')){S.tipsOpen=t.open;save()}if(t.classList.contains('paper')){S.paperOpen=t.open;save()}if(t.classList.contains('testa')){S.testaOpen=t.open;save()}},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.lbox')?.remove();
   if(e.key==='Enter'&&e.target.tagName==='INPUT'){const t=e.target;
     if(t.dataset.slot){e.preventDefault();const all=[...document.querySelectorAll('input.slot')],i=all.indexOf(t);if(i<all.length-1)all[i+1].focus();else checkSlots(t.dataset.slot.split(':')[0]);return}

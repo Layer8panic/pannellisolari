@@ -277,3 +277,5 @@ input.slot:focus{outline:0;border-color:var(--sun);box-shadow:0 0 0 3px rgba(245
 body.running .navb .btn,body.running .mnav .btn{opacity:.6}
 @media (max-width:600px){.fopt{font-size:15px}.slotf{font-size:15.5px}input.slot{font-size:15px}}
 @media (prefers-reduced-motion:reduce){.dnew [pathLength]{animation:none;stroke-dashoffset:0}.dnew [stroke-dasharray]{animation:none;opacity:1}.dnew text{animation:none;opacity:1}.av,.bub,.tbar i::after,.prog i::after{animation:none}}
+.testa{border-left:5px solid var(--sun);background:linear-gradient(90deg,#fffaf0,#fff 40%)}.testa summary{cursor:pointer;font-weight:800;color:var(--navy)}.testa ol{margin:10px 0 0;padding-left:22px}.testa li{margin:5px 0}
+.testa ol.metodo li::marker{color:var(--sun);font-weight:800}
