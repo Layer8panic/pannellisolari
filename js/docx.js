@@ -10,7 +10,7 @@ class Doc{
   fig(f,cap,o={}){if(!o.nocap)this.nf++;this.b.push({k:'img',f,cap:o.nocap?'':this.L.cap(this.nf,cap),o});return this}
   pair(f1,c1,f2,c2){if(!this.L.pairs){this.fig(f1,c1,{width:13});this.fig(f2,c2,{width:13});return this}
     this.nf++;const a=this.L.cap(this.nf,c1);this.nf++;const b=this.L.cap(this.nf,c2);this.b.push({k:'pair',f1,f2,c1:a,c2:b});return this}
-  raw(bytes,w,h,width){this.b.push({k:'raw',bytes,w,h,width});return this}
+  raw(bytes,w,h,width,cap){if(cap){this.nf++;cap=this.L.cap(this.nf,cap)}this.b.push({k:'raw',bytes,w,h,width,cap:cap||'',o:{}});return this}
   table(rows,o={}){this.b.push({k:'tbl',rows,o});return this}
   box(inner){this.b.push({k:'box',inner});return this}
   pb(){this.b.push({k:'pb'});return this}

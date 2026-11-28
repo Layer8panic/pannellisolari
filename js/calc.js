@@ -3,13 +3,13 @@
 const r1=x=>Math.round(x*10)/10;
 const isNull=v=>v==null||v==='';
 function suggestRoof(){const A=+S.A||120,pi=+S.piani||2,fp=A/pi,depth=Math.sqrt(fp/1.6),width=fp/depth,t=S.roof==='piano'?0:(+S.tilt||30);
-  return {W:r1(width),L:S.roof==='piano'?r1(depth):r1(depth/2/Math.cos(rad(t))+0.3)}}
+  return {W:r1(Math.max(7,width)),L:S.roof==='piano'?r1(Math.max(6,depth)):r1(Math.max(4.5,Math.max(6,depth)/2/Math.cos(rad(t))+0.3))}}
 function layoutPanels(D){
   const flat=S.roof==='piano',N=D.N,rows=clamp(S.rows||1,1,N),per=Math.ceil(N/rows),V=S.orient==='V',P=D.P;
   const pw=(V?P.larg:P.lung)/1000,ph=(V?P.lung:P.larg)/1000,pitchX=pw+0.025;
   let depth=ph,dRow=0,rowPitch;if(flat){depth=ph*Math.cos(rad(S.flatTilt));const hR=ph*Math.sin(rad(S.flatTilt));dRow=hR*rowFactor(S.flatTilt);rowPitch=depth+dRow}else rowPitch=ph+0.3;
   const m=S.margin,W=D.roofW,Lr=D.roofL,blockW=(per-1)*pitchX+pw,blockH=(rows-1)*rowPitch+depth,freeX=W-2*m-blockW,freeY=Lr-2*m-blockH;
-  const left=TH.chimney==='left',x0=m+Math.max(0,freeX)*(left?0.85:0.15),y0=m+Math.max(0,freeY)*0.5,panels=[];let k=0;
+  const left=TH.chimney==='left',x0=m+Math.max(0,freeX)*(left?1:0),y0=m+Math.max(0,freeY)*0.5,panels=[];let k=0;
   for(let r=0;r<rows;r++){const n=Math.min(per,N-k);for(let c=0;c<n;c++){const x=x0+c*pitchX,y=y0+r*rowPitch,p={x,y,w:pw,h:depth,ok:true,why:''};
     if(x<m-1e-6||x+pw>W-m+1e-6||y<m-1e-6||y+depth>Lr-m+1e-6){p.ok=false;p.why='esce dal tetto'}
     for(const o of D.obs)if(x<o.x+o.w+.3&&x+pw>o.x-.3&&y<o.y+o.h+.3&&y+depth>o.y-.3){p.ok=false;p.why='tocca il camino'}
@@ -26,7 +26,7 @@ function compute(){
   D.tilt=S.roof==='piano'?S.flatTilt:(+S.tilt||30);D.az=DIR_AZ[S.dir]??0;D.oLoss=orientLoss(D.az);D.noonW=90-D.lat-23.45;D.noonS=90-D.lat+23.45;D.ideal=Math.round(D.lat+10);
   const sg=suggestRoof();D.roofW=isNull(S.roofW)?sg.W:+S.roofW;D.roofL=isNull(S.roofL)?sg.L:+S.roofL;D.roofEst=isNull(S.roofW)||isNull(S.roofL);
   D.obs=S.camino?[{t:'camino',x:TH.chimney==='left'?Math.min(1.2,D.roofW*0.12):Math.max(0.4,D.roofW*0.86-0.3),y:Math.max(0.3,D.roofL*0.3),w:.6,h:.6}]:[];
-  D.layout=layoutPanels(D);D.conn=S.orient==='V'?'parallelo':'serie';D.maxLine=S.orient==='V'?D.P.maxV:D.P.maxO;
+  D.layout=layoutPanels(D);D.fits=(o,r)=>{const so=S.orient,sr=S.rows;S.orient=o;S.rows=r;const l=layoutPanels(D);S.orient=so;S.rows=sr;return !l.bad};D.maxRows=Math.min(3,D.N);D.fitO=o=>[1,2,3].slice(0,D.maxRows).some(r=>D.fits(o,r));D.fitAny=D.fitO('V')||D.fitO('O');D.conn=S.orient==='V'?'parallelo':'serie';D.maxLine=S.orient==='V'?D.P.maxV:D.P.maxO;
   D.lines=Math.max(D.layout.rows,Math.ceil(D.N/(D.conn==='serie'?Math.min(D.maxLine,5):D.maxLine)));D.per=Math.ceil(D.N/D.lines);
   // portata
   D.qsp=40;D.Gp=D.qsp*D.Aref;D.G=D.Gp*D.N;D.Gline=D.G/D.lines;

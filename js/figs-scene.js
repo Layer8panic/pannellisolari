@@ -27,8 +27,8 @@ function panelPoly(pts,id,frame){const [a,b,c,d]=pts;let s=`<polygon points="${P
 // ---------- scena 3D della casa (copertina, tetto, quote) ----------
 function sceneHouse(D,o={}){
   const id=++UID,W=900,H=560,L=o.L,cut=o.cut!==false,dims=!!o.dims,piani=clamp(S.piani||2,1,3);
-  const yB=478,wallH=piani===1?140:piani===2?205:245,yT=yB-wallH,x0=200,x1=680,dx=120,dy=-74;
-  const tilt=D.tilt||30,h=clamp(Math.tan(rad(tilt))*70,20,120),ov=18,flat=S.roof==='piano';
+  const yB=478,gH=195,upH=80,wallH=gH+(piani-1)*upH,yT=yB-wallH,yG=yB-gH,x0=200,x1=680,dx=120,dy=-74;
+  const tilt=D.tilt||30,h=clamp(Math.tan(rad(tilt))*70,20,Math.min(120,yT+dy/2-24)),ov=18,flat=S.roof==='piano';
   const E1=[x0-ov,yT+6],E2=[x1+ov,yT+6],R1=[x0-ov+dx/2,yT+dy/2-h],R2=[x1+ov+dx/2,yT+dy/2-h];
   let defs=SHF(id)+`<linearGradient id="sky${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${TH.sky[0]}"/><stop offset="1" stop-color="${TH.sky[1]}"/></linearGradient>
    <linearGradient id="pg${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#244a8f"/><stop offset=".55" stop-color="#14305e"/><stop offset="1" stop-color="#0d2247"/></linearGradient>
@@ -72,8 +72,13 @@ function sceneHouse(D,o={}){
     else{const u=u0+c*(wu+gapu),v=v0+r*(hv+gapv),P=(uu,vv)=>[E1[0]+uu*(E2[0]-E1[0])+vv*(R1[0]-E1[0]),E1[1]+vv*(R1[1]-E1[1])];pts=[P(u,v),P(u+wu,v),P(u+wu,v+hv),P(u,v+hv)];}
     panelsPts.push(pts);b+=panelPoly(pts,id,frame);}}
   if(L&&!flat)b+=`<g class="pulse" opacity=".35">${panelsPts.map(p=>`<polygon points="${P2(p)}" fill="#bfe1ff"/>`).join('')}</g>`;
+  const win=(wx,wy)=>`<rect x="${wx}" y="${wy}" width="34" height="40" fill="#cfe5f7" stroke="#55606f" stroke-width="2"/><line x1="${wx+17}" y1="${wy}" x2="${wx+17}" y2="${wy+40}" stroke="#55606f"/>`;
+  const winX=i=>x0+40+i*((x1-x0-80)/(TH.windows+0.6)),floorBot=p=>p===0?yB:yG-(p-1)*upH,floorH=p=>p===0?gH:upH;
+  if(cut&&piani>1){b+=`<rect x="${x0}" y="${yT}" width="${x1-x0}" height="${yG-yT}" fill="${TH.wall}" stroke="#8d7f66" stroke-width="2"/>`;
+    for(let p=1;p<piani;p++){for(let i=0;i<TH.windows+1;i++)b+=win(winX(i),floorBot(p)-floorH(p)/2-20);if(p>1)b+=`<line x1="${x0}" x2="${x1}" y1="${floorBot(p)}" y2="${floorBot(p)}" stroke="#b5a88c" stroke-width="2"/>`}
+    b+=`<rect x="${x0-4}" y="${yG-6}" width="${x1-x0+8}" height="12" fill="#b9ad95" stroke="#7d6f56"/>`}
   // finestre e porta (se non sezione)
-  if(!cut){for(let p=0;p<piani;p++)for(let i=0;i<TH.windows+1;i++){const wx=x0+40+i*((x1-x0-80)/(TH.windows+0.6)),wy=yB-70-p*((yB-yT)/piani);b+=`<rect x="${wx}" y="${wy}" width="34" height="40" fill="#cfe5f7" stroke="#55606f" stroke-width="2"/><line x1="${wx+17}" y1="${wy}" x2="${wx+17}" y2="${wy+40}" stroke="#55606f"/>`}
+  if(!cut){for(let p=0;p<piani;p++)for(let i=0;i<TH.windows+1;i++){const wx=winX(i),wy=floorBot(p)-floorH(p)/2-20-(p===0?10:0);b+=`<rect x="${wx}" y="${wy}" width="34" height="40" fill="#cfe5f7" stroke="#55606f" stroke-width="2"/><line x1="${wx+17}" y1="${wy}" x2="${wx+17}" y2="${wy+40}" stroke="#55606f"/>`}
     if(TH.door)b+=`<rect x="${(x0+x1)/2-20}" y="${yB-64}" width="40" height="64" fill="#8b5e3c" stroke="#5c3b22"/>`;
     b+=`<rect x="${x0}" y="${yT}" width="${x1-x0}" height="${yB-yT}" fill="none" stroke="#8d7f66" stroke-width="2"/>`}
   else{b+=`<path d="M${x0},${yB} L${x0},${yT} L${x1},${yT} L${x1},${yB}" fill="none" stroke="#7d6f56" stroke-width="7"/>`}
@@ -85,6 +90,7 @@ function sceneHouse(D,o={}){
     const top=panelsPts.length?panelsPts[panelsPts.length-1]:[[x0+200,yT-40]];const pOut=top[2]||top[0],pIn=panelsPts[0]?panelsPts[0][0]:[x0+150,yT];
     b+=LN(`M${pOut[0]},${pOut[1]} L${pOut[0]+20},${pOut[1]} L${t1x+30},${yT+30} L${t1x+30},${fl-110}`,TH.hot,1,L,4);
     b+=LN(`M${t1x-30},${fl-60} L${t1x-40},${fl-60} L${t1x-40},${yT+40} L${pIn[0]},${pIn[1]}`,TH.cold,1,L,4);
+
     b+=tank(t1x,64,150)+tank(t2x,60,140);
     b+=`<rect x="${hx-14}" y="${fl-82}" width="28" height="56" rx="3" fill="#aab3c0" stroke="#5d6774"/>${[0,1,2,3,4].map(i=>`<line x1="${hx-10+i*5}" y1="${fl-78}" x2="${hx-10+i*5}" y2="${fl-30}" stroke="#5d6774"/>`).join('')}`;
     b+=LN(`M${t1x+32},${fl-90} L${hx-14},${fl-70}`,TH.hot,1,L,3)+LN(`M${hx+14},${fl-40} L${t2x-30},${fl-40}`,TH.hot,1,L,3);
@@ -93,7 +99,7 @@ function sceneHouse(D,o={}){
     b+=`<rect x="${x0+300}" y="${fl-178}" width="34" height="26" rx="3" fill="#33405a"/><rect x="${x0+304}" y="${fl-174}" width="26" height="9" fill="#9fe0b0"/>`;
     b+=`<path d="M${x0+20},${fl-40} l0,-24 l16,0" stroke="#7a8696" stroke-width="4" fill="none"/><path d="M${x0+36} ${fl-64} q4,8 0,14" stroke="${TH.cold}" stroke-width="2" fill="none"/>`;
     const B1=yB+32,B2=yB+62;
-    lab+=lead(t1x-20,fl-140,x0-70,fl-170)+Lbl(x0-70,fl-176,`Accumulo solare ${D.Vtank||''} l`,{f:'sh'+id,s:11.5});
+    lab+=lead(t1x-26,fl-110,x0-70,fl-112)+Lbl(x0-70,fl-118,`Accumulo solare ${D.Vtank||''} l`,{f:'sh'+id,s:11.5});
     lab+=lead(x0+317,fl-165,x1+60,fl-215)+Lbl(890,fl-221,'Centralina differenziale',{f:'sh'+id,s:11,a:'end'});
     lab+=lead(cx+60,fl-120,x1+60,fl-140)+Lbl(890,fl-146,'Caldaia di integrazione',{f:'sh'+id,s:11,a:'end'});
     lab+=lead(t2x,fl,t2x,B1-14)+Lbl(t2x,B1,'Accumulo combinato',{f:'sh'+id,s:11});
@@ -103,11 +109,11 @@ function sceneHouse(D,o={}){
   if(panelsPts.length){const p=panelsPts[Math.floor(panelsPts.length/2)][3];lab+=lead(p[0],p[1],p[0]-40,p[1]-56)+Lbl(p[0]-40,p[1]-62,`${N} pannelli ${D.P.n.replace('Pannello dalla scheda tecnica','solari termici')}`,{f:'sh'+id})}
   // quote
   if(dims&&!flat){
-    const off=20,a=[E1[0],E1[1]+off],c2=[E2[0],E2[1]+off];
+    const a=[x0,yB+20],c2=[x1,yB+20];
     b+=`<line x1="${a[0]}" y1="${a[1]}" x2="${c2[0]}" y2="${c2[1]}" stroke="#1d2433" stroke-width="1.4" marker-start="url(#ar${id})" marker-end="url(#ar${id})"/>`;
     defs+=`<marker id="ar${id}" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8z" fill="#1d2433"/></marker>`;
-    lab+=Lbl((a[0]+c2[0])/2,a[1]+24,`larghezza falda ${f2(D.roofW)} m`,{s:12});
-    lab+=`<line x1="${E1[0]-14}" y1="${E1[1]}" x2="${R1[0]-14}" y2="${R1[1]}" stroke="#1d2433" stroke-width="1.4" marker-start="url(#ar${id})" marker-end="url(#ar${id})"/>`+Lbl(E1[0]-40,(E1[1]+R1[1])/2,`falda ${f2(D.roofL)} m`,{s:11,a:'end'});
+    lab+=`<line x1="${x0}" y1="${yB}" x2="${x0}" y2="${yB+26}" stroke="#1d2433"/><line x1="${x1}" y1="${yB}" x2="${x1}" y2="${yB+26}" stroke="#1d2433"/>`+Lbl((a[0]+c2[0])/2,a[1]+26,`larghezza falda ${f2(D.roofW)} m`,{s:12});
+    lab+=`<line x1="${E1[0]-14}" y1="${E1[1]}" x2="${R1[0]-14}" y2="${R1[1]}" stroke="#1d2433" stroke-width="1.4" marker-start="url(#ar${id})" marker-end="url(#ar${id})"/>`+(()=>{const my=(E1[1]+R1[1])/2,mx=(E1[0]+R1[0])/2-14,ly=Math.max(my,175);return (ly!==my?lead(mx,my,E1[0]-40,ly):'')+Lbl(E1[0]-40,ly,`falda ${f2(D.roofL)} m`,{s:11,a:'end'})})();
     {const ax=x1+dx/2,ay=yT+dy/2-h,a1=Math.atan2(dy,dx),a2=Math.atan2(ay-yT,ax-x1),r=40;lab+=`<path d="M${x1+r*Math.cos(a1)},${yT+r*Math.sin(a1)} A${r} ${r} 0 0 0 ${x1+r*Math.cos(a2)},${yT+r*Math.sin(a2)}" fill="none" stroke="#1d2433" stroke-width="2"/>`+lead(x1+30,yT-22,x1+70,yT-70)+Lbl(x1+90,yT-76,`inclinazione ${tilt}°`,{s:12,stroke:TH.hot})}
     const cx=80,cy=90,az=rad(D.az||0);lab+=`<g transform="translate(${cx},${cy})"><circle r="34" fill="#fff" stroke="#c9c1ad" stroke-width="2"/><text y="-20" text-anchor="middle" font-size="11" font-weight="bold" fill="#33405a">N</text><text y="30" text-anchor="middle" font-size="11" font-weight="bold" fill="#33405a">S</text><line x1="0" y1="0" x2="${-Math.sin(az)*26}" y2="${Math.cos(az)*26}" stroke="${TH.hot}" stroke-width="4" stroke-linecap="round"/><circle r="4" fill="${TH.hot}"/></g>`+Lbl(cx,cy+60,`falda verso ${S.dir||'Sud'}`,{s:11});
   }

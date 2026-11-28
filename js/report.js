@@ -3,6 +3,8 @@ function b64bytes(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.
 async function buildReport(){
   TH=makeTheme();const D=compute(),L=makeLayout(),R=rngFrom(hashStr(seedStr()+'#rep')),pick=a=>a[Math.floor(R()*a.length)];
   const Ly=D.layout,ed=EDIFICI[S.edificio]||'abitazione',up=s=>String(s||'').toUpperCase().trim(),g=GLICOLE[D.gtype];
+  const mineP=id=>{const t=String((S.mine||{})[id]||'').replace(/[*_]/g,'').replace(/\s+/g,' ').trim();if(t)doc.p('**'+V('mh'+id,['Il mio ragionamento.','Osservazioni personali.','Con parole mie.','Come ho ragionato.'])+'** '+t)};
+  const photo=(k,cap,w)=>{const p=(typeof PHOTOS!=='undefined')&&PHOTOS[k];if(p&&p.url)doc.raw(b64bytes(p.url.split(',')[1]),p.w,p.h,w,cap)};
   const TITLE='PROGETTO IMPIANTO A PANNELLI SOLARI PER UN SERVIZIO COMBINATO';
   const doc=new Doc('Progetto impianto a pannelli solari per un servizio combinato',L);
   // ---------- copertina (tre impaginazioni) ----------
@@ -29,6 +31,7 @@ async function buildReport(){
   doc.p(`**Calcolo:** la superficie abitata è di ${f0(D.A)} m², quindi:`);doc.cp(`S = ${f2(D.coef)} × ${f0(D.A)} / 10 = ${f2(D.Sreq)} m²`);
   doc.p(`La superficie di un pannello è di ${f2(D.Aref)} m², quindi il numero di pannelli sarà:`);doc.cp(`N = ${f2(D.Sreq)} m² / ${f2(D.Aref)} m² = ${f2(D.Nraw)} → ${D.N} pannelli`);
   doc.p(V('p1c',[`Arrotondando per eccesso si installano ${D.N} pannelli solari ${D.P.n}, per una superficie captante di **${f2(D.Snet)} m²**.`,`Il risultato si arrotonda per eccesso: ${D.N} pannelli, cioè **${f2(D.Snet)} m²** di superficie captante.`]));
+  mineP('numero');
   doc.h2(`${L.bullet} Disposizione dei pannelli sul tetto`);
   doc.p(V('p1d',[`I ${D.N} pannelli sono montati ${S.orient==='V'?'in verticale':'in orizzontale'} su ${Ly.rows} fil${Ly.rows>1?'e':'a'}, ${S.roof==='piano'?`su supporti inclinati di ${D.tilt}°`:`complanari alla falda inclinata di ${D.tilt}°`} ed esposta a ${(S.dir||'Sud').toLowerCase()}. Il campo occupa ${f2(Ly.blockW)} × ${f2(Ly.blockH)} m e lascia ${f1(S.margin)} m liberi dai bordi.`,`Sul tetto esposto a ${(S.dir||'Sud').toLowerCase()} si collocano ${D.N} pannelli ${S.orient==='V'?'verticali':'orizzontali'} su ${Ly.rows} fil${Ly.rows>1?'e':'a'}: il campo misura ${f2(Ly.blockW)} × ${f2(Ly.blockH)} m, a ${f1(S.margin)} m dai bordi${S.camino?' e lontano dal camino':''}.`]));
   if(L.pairs)doc.pair(sceneHouse(D,{cut:false,dims:true}),'Vista della casa con i pannelli',figPlan3(D),'Pianta della falda');
@@ -39,17 +42,21 @@ async function buildReport(){
   doc.p(V('p2a',[`Come materiale del tubo si sceglie l’**acciaio non zincato**, perché oltre i 60 °C avvengono fenomeni di dezincatura. Il dimensionamento si effettua con il **metodo delle perdite di carico lineari costanti**.`,`Le tubazioni sono in **acciaio non zincato**: il tubo zincato non è adatto perché sopra i 60 °C, specie con il glicole, lo zinco si stacca. Si usa il **metodo delle perdite di carico lineari costanti**.`]));
   doc.p(V('p2b',[`Con una portata di ${f0(D.G)} l/h e una perdita di carico imposta di **${D.rimp} mm c.a./m**, nella tabella delle perdite di carico per tubi in acciaio con acqua a 50 °C il primo tubo adatto ha diametro esterno **${f1(D.pipeP.de)} mm** e diametro interno **${f1(D.pipeP.di)} mm**. Scendendo nella sua colonna si trova la perdita reale: **${D.r} mm c.a./m**.`,`La portata del circuito è ${f0(D.G)} l/h. Imponendo **${D.rimp} mm c.a./m** si sceglie, nella tabella dei tubi in acciaio, il tubo con De **${f1(D.pipeP.de)} mm** e Di **${f1(D.pipeP.di)} mm**; con questa portata la sua perdita effettiva è di **${D.r} mm c.a./m**.`]));
   doc.fig(figTab7A(D),'Tabella delle perdite di carico nei tubi in acciaio con la scelta evidenziata',{width:15.5});
+  mineP('tubi');
   doc.h2(`${L.bullet} L’isolamento del tubo`);
   doc.p(V('p2c',[`L’isolante e gli spessori si calcolano secondo la Legge 10. Il materiale scelto è **${D.im.n.toLowerCase()}** con conduttività λ = ${f3(D.lam)} W/(m·K). Con un tubo di diametro esterno ${f1(D.pipeP.de)} mm la tabella prevede ${D.insTab} mm: si adotta lo spessore commerciale di **${D.insComm} mm**.`,`Per l’isolamento si segue la Legge 10. Si sceglie **${D.im.n.toLowerCase()}** (λ = ${f3(D.lam)} W/(m·K)); entrando nella tabella con λ = ${f3(INS_L[D.lamRow])} e De ${f1(D.pipeP.de)} mm si legge ${D.insTab} mm, quindi l’isolante commerciale è da **${D.insComm} mm**.`]));
   doc.p(`Dalla tabella della superficie esterna, un metro di tubo isolato ha **${f3(D.Sext)} m²** di superficie; per ${D.Ltot} m di tubo servono ${f2(D.Sext*D.Ltot)} m² di rivestimento. All’esterno l’isolante è protetto con un lamierino contro pioggia, raggi UV e animali.`);
   doc.fig(figDPR(D),'Spessori minimi dell’isolante (Legge 10)',{width:14});doc.fig(figTab9(D),'Superficie esterna per metro di tubo isolato',{width:13})
   doc.p('DISEGNO TRIDIMENSIONALE LINEA IMPIANTO SOLARE PRIMARIO COMBINATO',{style:'TitoloSez'});
   doc.fig(figTube3D(D),'Tubo del circuito primario con il suo isolamento',{width:14});
+  photo('line','Disegno a mano della linea del circuito primario',13);
+  mineP('isola');
   // ---------- 3 ----------
   doc.h1('3. ADDITIVI DEL FLUIDO VETTORE');
   doc.p(V('p3a',[`Come additivo del fluido vettore si usa il **${g.n}**, che mescolato con l’acqua dà soluzioni che restano liquide anche a temperature molto basse. Il suo uso aumenta densità e viscosità della soluzione e quindi le perdite di pressione nel circuito.`,`Il fluido che circola nei pannelli è una miscela di acqua e **${g.n}**: non gela d’inverno, ma è più denso e viscoso dell’acqua e fa aumentare le perdite di carico.`]));
   doc.p(V('p3b',[`La temperatura esterna di progetto è ${D.Tp} °C; per sicurezza si protegge il circuito fino a ${D.Tprot} °C. Con una concentrazione in volume del **${D.gpct}%** si è protetti fino a **${D.Tg} °C**. Nei tubi d’acciaio questa miscela porta un fattore di maggiorazione delle perdite di pressione di **${f2(D.fg)}**.`,`Con ${D.Tp} °C di progetto si vuole una protezione fino a ${D.Tprot} °C. Una miscela al **${D.gpct}%** resta liquida fino a **${D.Tg} °C**; il fattore di maggiorazione delle perdite di carico nei tubi d’acciaio vale **${f2(D.fg)}**.`])+(g.tox?' Il glicole etilico è tossico: con l’acqua sanitaria è preferibile il propilenico.':''));
   doc.fig(figGlycol(D),`Temperatura di congelamento del ${g.n} e concentrazione scelta`,{width:13});
+  mineP('gelo');
   // ---------- 4 ----------
   doc.h1('4. DIMENSIONAMENTO DELLA POMPA DI CIRCOLAZIONE');
   doc.p(V('p4a',['La scelta della pompa di circolazione si fa determinando la portata volumetrica e la prevalenza manometrica.','Per scegliere la pompa servono due dati: la portata da far circolare e la prevalenza, cioè la somma delle perdite di carico.']));
@@ -64,6 +71,7 @@ async function buildReport(){
   doc.cp(`H = (${f0(D.Hcont)} + ${f0(D.Hloc)} + ${f0(D.Hfield)}) × ${f2(D.fg)} + ${f0(D.Hsc)} = ${f0(D.Htot)} mm c.a. = ${f2(D.Htot/1000)} m c.a.`);
   doc.p(V('p4b',[`Si sceglie un circolatore per impianti solari con portata di **${f3(D.G/1000)} m³/h** e prevalenza di almeno **${f2(D.Htot/1000)} m c.a.**, tarando la portata con il regolatore del gruppo idraulico.`,`Il circolatore deve garantire **${f3(D.G/1000)} m³/h** con una prevalenza di almeno **${f2(D.Htot/1000)} m c.a.**; la portata esatta si regola con il regolatore del gruppo di circolazione.`]));
   if(L.pairs)doc.pair(figPump3(D),'Curva dell’impianto e punto di lavoro',figLosses(D),'Composizione della prevalenza');else doc.fig(pick([figPump3,figLosses])(D),'Prevalenza richiesta alla pompa',{width:13});
+  mineP('pompa');
   // ---------- 5 ----------
   doc.h1('5. POTENZA DELLO SCAMBIATORE DI CALORE');
   doc.p(V('p5a',['La potenza specifica di progetto è la potenza che 1 m² di pannello può captare e trasferire al fluido vettore con l’insolazione massima. Per pannelli piani con copertura trasparente si assume q = 400 kcal/(h·m²); la potenza dello scambiatore sarà:','Per i pannelli piani vetrati la potenza specifica di progetto è q = 400 kcal/(h·m²), cioè il calore che un metro quadrato di pannello può cedere al fluido nelle condizioni migliori. La potenza dello scambiatore vale:']));
@@ -71,6 +79,7 @@ async function buildReport(){
   doc.p('Si ipotizzano le seguenti temperature del circuito solare e del circuito del serbatoio di accumulo:');
   doc.table([['Circuito','Entrata','Uscita'],['Circuito solare','50 °C','40 °C'],['Circuito serbatoio','35 °C','45 °C']],{widths:[2,1,1],w:0.7});
   doc.fig(figHX(D),'Scambiatore di calore a piastre con le temperature dei due circuiti',{width:14});
+  mineP('scamb');
   // ---------- 6 ----------
   doc.h1('6. DIMENSIONAMENTO DEL VASO DI ESPANSIONE ASSUMENDO CON CRITERIO I PARAMETRI DI PROGETTAZIONE');
   doc.p('Il volume commerciale del vaso di espansione si determina con la formula:');doc.cp('Vn = Vu × (Pf + 1) / (Pf − Pi)');
@@ -83,6 +92,7 @@ async function buildReport(){
   doc.cp(`Pi = ${f1(D.Hst)} / 10,2 + 0,5 = ${f1(D.Pi)} bar`);doc.cp(`Pf = ${f1(D.Pvs)} − 0,5 = ${f1(D.Pf)} bar`);doc.cp(`Vn = ${f1(D.Vu)} × (${f1(D.Pf)} + 1) / (${f1(D.Pf)} − ${f1(D.Pi)}) = ${f1(D.Vn)} l`);
   doc.p(V('p6a',[`Il valore calcolato porta alla scelta del vaso commerciale da **${D.vaso} l**, con precarica di ${f1(D.Pi)} bar, montato sul ritorno con l’attacco in basso e senza isolamento.`,`Si sceglie un vaso commerciale da **${D.vaso} l**, precaricato a ${f1(D.Pi)} bar e installato sul ritorno, attacco verso il basso, senza isolante.`]));
   doc.fig(figVaso3(D,Math.round(105+R()*40)),'Il vaso accoglie la dilatazione del fluido e il vapore dei pannelli',{width:12});
+  mineP('vaso');
   // ---------- 7 ----------
   doc.h1('7. DIMENSIONAMENTO DELLA VALVOLA DI SICUREZZA');
   doc.p(V('p7a',[`Si usa una valvola di sicurezza con pressione di apertura di **${f1(D.Pvs)} bar**. Deve essere previsto lo scarico della miscela antigelo in un contenitore di raccolta, ad esempio una tanica: è vietato lo scarico nella rete fognaria.`,`La valvola di sicurezza è tarata a **${f1(D.Pvs)} bar**, sotto la pressione massima dei pannelli. Lo scarico va in una tanica di raccolta della miscela antigelo, perché il glicole non può finire in fognatura.`]));
@@ -92,11 +102,14 @@ async function buildReport(){
   doc.p('Il volume del serbatoio di accumulo si determina con la formula:');doc.cp('V = (50 ÷ 60) × S');doc.p('dove V è in litri e S è la superficie dei pannelli in m².');
   doc.cp(`V = ${D.kV} × ${f2(D.Snet)} = ${f0(D.Vcalc)} l → serbatoio commerciale da ${D.Vtank} l`);
   doc.fig(figTank3(D),D.tankName,{width:10.5});
+  mineP('serb');
   // ---------- 9 ----------
   doc.h1('9. SCHEMA DELLA CENTRALE TERMICA DELL’IMPIANTO SOLARE E RELATIVA REGOLAZIONE');
   doc.fig(figCentraleSol(D,{on:true}),'Centrale termica dell’impianto solare',{width:16});
+  photo('cent','Schema della centrale disegnato a mano',13);
   doc.p(V('p9a',['La regolazione del circuito solare si effettua con un **termoregolatore differenziale**, che permette di impostare la differenza di temperatura ΔT voluta. Due sonde rilevano la temperatura dei pannelli (S1) e del serbatoio di accumulo (S2).','Il circuito solare è comandato da una **centralina differenziale** collegata a due sonde: S1 sui pannelli e S2 nella parte bassa del serbatoio.']));
   doc.p(`Se la differenza di temperatura supera il ΔT di taratura, scelto pari a **${D.dton} °C** (valori usuali 5 ÷ 8 °C), la pompa del circuito solare si accende; in caso contrario resta spenta. La pompa si ferma anche quando il serbatoio raggiunge ${D.tmax} °C.`);
+  mineP('schemi');
   // ---------- 10 ----------
   doc.h1('10. SCHEMA DELLA CENTRALE TERMICA DELL’IMPIANTO COMBINATO E LA SUA REGOLAZIONE');
   doc.fig(figCentraleComb(D,{T1:Math.round(48+R()*14),T2:Math.round(27+R()*5)}),'Centrale termica dell’impianto combinato',{width:16});
